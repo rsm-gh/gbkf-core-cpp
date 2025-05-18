@@ -1,0 +1,98 @@
+
+/*
+  Copyright (C) 2025 Rafael Senties Martinelli. All Rights Reserved.
+*/
+
+#include <cassert>
+#include <iostream>
+#include <filesystem>
+#include <limits>
+#include "GBKF/Core.hxx"
+
+void testHeader() {
+    std::string path = "test_core_header.gbkf";
+
+    struct TestEntry {
+        uint8_t gbkf_version;
+        uint32_t spec_id;
+        uint16_t spec_version;
+        uint8_t keys_length;
+        uint32_t keyed_values_nb;
+    };
+
+    std::vector<TestEntry> const tests = {
+        {0, 0, 0, 1, 1},
+        {std::numeric_limits<int8_t>::max(), std::numeric_limits<int32_t>::max(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int8_t>::max(), std::numeric_limits<int32_t>::max()},
+        {10, 11, 12, 13, 13},
+    };
+
+    for (size_t i = 0; i < tests.size(); ++i) {
+        std::string file = "test_core_header_" + std::to_string(i) + ".gbkf";
+        Core::Writer writer;
+        writer.setGbkfVersion(tests[i].gbkf_version);
+        writer.setSpecificationId(tests[i].spec_id);
+        writer.setSpecificationVersion(tests[i].spec_version);
+        writer.setKeysLength(tests[i].keys_length);
+        writer.setKeyedValuesNb(tests[i].keyed_values_nb);
+        writer.write(file, false);
+
+        Core::Reader reader(file);
+        assert(reader.getGbkfVersion() == tests[i].gbkf_version);
+        assert(reader.getSpecificationId() == tests[i].spec_id);
+        assert(reader.getSpecificationVersion() == tests[i].spec_version);
+        assert(reader.getKeysLength() == tests[i].keys_length);
+        assert(reader.getKeyedValuesNb() == tests[i].keyed_values_nb);
+        assert(reader.verifiesSha());
+    }
+
+    std::cout << "test OK > Core Header.\n";
+}
+
+void testValues() {
+    std::string path = "test_core_values.gbkf";
+
+    Core::Writer writer;
+    writer.setKeysLength(2);
+    std::vector<uint64_t> pos1_values = {1,2,3,4,5,6,7,8,9,10};
+    std::vector<uint64_t> pos2_values = {100,200,300,400,500,600,700,800,900,1000};
+    std::vector<double> double_values = {0, .3434546785, 1.5, 1000.9, -10000.865};
+
+    writer.addLineIntegers("IP", 1, pos1_values);
+    writer.addLineIntegers("IP", 2, pos2_values);
+    writer.addLineDoubles("DD", 1, double_values);
+    writer.write(path, true);
+
+    Core::Reader reader(path);
+    auto map = reader.getKeyedValues();
+
+    auto ip1 = map["IP"][0];
+    assert(ip1.instance_id == 1);
+    assert(ip1.value.type == Core::ValueType::INTEGER);
+    assert(ip1.value.integers == pos1_values);
+
+    auto ip2 = map["IP"][1];
+    assert(ip2.instance_id == 2);
+    assert(ip2.value.type == Core::ValueType::INTEGER);
+    assert(ip2.value.integers == pos2_values);
+
+    auto dd = map["DD"][0];
+    assert(dd.instance_id == 1);
+    assert(dd.value.type == Core::ValueType::DOUBLE);
+    for (size_t i = 0; i < double_values.size(); ++i) {
+        assert(std::abs(dd.value.doubles[i] - double_values[i]) < 1e-6);
+    }
+
+    assert(reader.verifiesSha());
+    std::cout << "test OK > Core Values.\n";
+}
+
+int main() {
+    try {
+        testHeader();
+        testValues();
+    } catch (const std::exception& e) {
+        std::cerr << "Test failed: " << e.what() << '\n';
+        return 1;
+    }
+    return 0;
+}

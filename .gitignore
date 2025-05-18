@@ -1,0 +1,12 @@
+
+GBKF.proj.DotSettings
+gbkf-cpp.kdev4
+
+.kdev4/
+.idea/
+.run/
+build/
+out/
+cmake-build-debug/
+cmake-build-release/
+GBKF.proj.DotSettings
