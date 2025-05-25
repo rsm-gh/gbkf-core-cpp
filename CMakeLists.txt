@@ -22,7 +22,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Open SSL
 #
 
-find_package(OpenSSL REQUIRED)
+#find_package(OpenSSL REQUIRED)
 
 
 #
@@ -40,7 +40,7 @@ find_package(OpenSSL REQUIRED)
 add_library(GBKFCore SHARED "${CMAKE_SOURCE_DIR}/lib/Core.cpp")
 target_include_directories(GBKFCore PUBLIC ${CMAKE_SOURCE_DIR}/include)
 set_target_properties(GBKFCore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-target_link_libraries(GBKFCore PUBLIC OpenSSL::Crypto)
+#target_link_libraries(GBKFCore PUBLIC OpenSSL::Crypto)
 
 install(TARGETS GBKFCore
         LIBRARY DESTINATION lib

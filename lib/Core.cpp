@@ -16,11 +16,32 @@
 #include <fstream>
 #include <cstring>
 #include <stdexcept>
-#include <openssl/sha.h>
 #include <algorithm>
+//#include <openssl/sha.h>
+#include "GBKF/picosha2.hxx"
 #include "GBKF/Core.hxx"
 
 using namespace Core;
+
+
+Reader::Reader(const std::vector<uint8_t>& data) {
+
+    m_gbkf_version = 0;
+    m_specification_id = 0;
+    m_specification_version = 0;
+    m_keys_length = 1;
+    m_keyed_values_nb = 0;
+
+    m_bytes_data = data;
+
+    if (m_bytes_data.size() < Constants::SHA256_LENGTH) {
+        throw std::runtime_error("Data too small");
+    }
+
+    readSha();
+    readHeader();
+}
+
 
 Reader::Reader(const std::string& read_path) {
 
@@ -42,11 +63,26 @@ Reader::Reader(const std::string& read_path) {
     m_bytes_data.resize(size);
     file.read(reinterpret_cast<char*>(m_bytes_data.data()), static_cast<std::streamsize>(size));
 
+    readSha();
+    readHeader();
+}
+
+
+void Reader::readSha() {
+
+    //           With OpenSSL
+    //
+    //m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_LENGTH, m_bytes_data.end());
+    //m_sha256_calculated.resize(Constants::SHA256_LENGTH);
+    //SHA256(m_bytes_data.data(), m_bytes_data.size() - Constants::SHA256_LENGTH, m_sha256_calculated.data());
+
+
+    //           With PicoSha2
+    //
     m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_LENGTH, m_bytes_data.end());
     m_sha256_calculated.resize(Constants::SHA256_LENGTH);
-    SHA256(m_bytes_data.data(), size - Constants::SHA256_LENGTH, m_sha256_calculated.data());
+    picosha2::hash256(m_bytes_data.begin(), m_bytes_data.end() - Constants::SHA256_LENGTH, m_sha256_calculated.begin(), m_sha256_calculated.end());
 
-    readHeader();
 }
 
 void Reader::readHeader() {
@@ -333,7 +369,9 @@ void Writer::write(const std::string& write_path, const bool auto_update) {
     }
 
     std::vector<uint8_t> hash(Constants::SHA256_LENGTH);
-    SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
+    //SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
+    picosha2::hash256(m_byte_buffer.begin(), m_byte_buffer.end(), hash.begin(), hash.end());
+
     std::ofstream file(write_path, std::ios::binary);
 
     file.write(reinterpret_cast<const char*>(m_byte_buffer.data()), static_cast<std::streamsize>(m_byte_buffer.size()));

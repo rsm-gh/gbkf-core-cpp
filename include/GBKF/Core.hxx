@@ -79,6 +79,7 @@ namespace Core {
     class Reader {
     public:
         explicit Reader(const std::string& read_path);
+        explicit Reader(const std::vector<uint8_t>& data);
 
         [[nodiscard]] bool verifiesSha() const;
 
@@ -101,6 +102,7 @@ namespace Core {
         uint8_t m_keys_length;
         uint32_t m_keyed_values_nb;
 
+        void readSha();
         void readHeader();
 
         [[nodiscard]] std::pair<uint64_t, uint64_t> readInt(uint64_t start_pos, uint8_t length) const;
