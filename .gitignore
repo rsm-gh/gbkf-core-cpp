@@ -3,8 +3,6 @@
 .kdev4/
 .idea/
 .run/
-buildema/
 build/
-out/
-cmake-build-debug/
-cmake-build-release/
+cmake-build-*/
+emscripten-build/
