@@ -1,5 +1,5 @@
 
-<!-- Install OpenSSL DEV: remved to compile more easily with emscripten
+<!-- Install OpenSSL DEV: Replaced with picosha2.hxx to compile more easily with emscripten
 ```
 apt-get install libssl-dev
 ``` -->
@@ -16,7 +16,7 @@ ldconfig
 otherwise, it will be installed under `/usr/include` and by default the path is not added into ldconfig.
 
 
-Compile for emscripten:
+Compile with emscripten:
 ```
 emcmake cmake -DBUILD_SHARED_LIBS=OFF ..
 emmake make
