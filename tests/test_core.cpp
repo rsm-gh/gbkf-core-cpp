@@ -65,10 +65,12 @@ void testValues() {
     writer.setKeysLength(2);
     std::vector<uint64_t> pos1_values = {1,2,3,4,5,6,7,8,9,10};
     std::vector<uint64_t> pos2_values = {100,200,300,400,500,600,700,800,900,1000};
+    std::vector<float> single_values = {0, .3467846785, 6.5, 110.9, -15000.865};
     std::vector<double> double_values = {0, .3434546785, 1.5, 1000.9, -10000.865};
 
     writer.addLineIntegers("IP", 1, pos1_values);
     writer.addLineIntegers("IP", 2, pos2_values);
+    writer.addLineSingles("SS", 5, single_values);
     writer.addLineDoubles("DD", 1, double_values);
     writer.write(path, true);
 
@@ -84,6 +86,13 @@ void testValues() {
     assert(ip2.instance_id == 2);
     assert(ip2.value.type == Core::ValueType::INTEGER);
     assert(ip2.value.integers == pos2_values);
+
+    auto ss = map["SS"][0];
+    assert(ss.instance_id == 5);
+    assert(ss.value.type == Core::ValueType::SINGLE);
+    for (size_t i = 0; i < single_values.size(); ++i) {
+        assert(std::abs(ss.value.singles[i] - single_values[i]) < 1e-6);
+    }
 
     auto dd = map["DD"][0];
     assert(dd.instance_id == 1);

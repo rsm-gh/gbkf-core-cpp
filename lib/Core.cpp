@@ -142,6 +142,12 @@ std::pair<std::string, uint64_t> Reader::readAscii(const uint64_t start_pos, con
     return {value, start_pos + length};
 }
 
+std::pair<float, uint64_t> Reader::readSingle(const uint64_t start_pos) const {
+    float value;
+    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::SINGLE_LENGTH);
+    return {value, start_pos + Constants::SINGLE_LENGTH};
+}
+
 std::pair<double, uint64_t> Reader::readDouble(const uint64_t start_pos) const {
     double value;
     std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::DOUBLE_LENGTH);
@@ -153,6 +159,15 @@ std::pair<std::vector<uint64_t>, uint64_t> Reader::readLineInt(const uint64_t st
     std::vector<uint64_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
         std::tie(values[i], pos) = readInt(pos, integers_length);
+    }
+    return {values, pos};
+}
+
+std::pair<std::vector<float>, uint64_t> Reader::readLineSingle(const uint64_t start_pos, const uint32_t values_nb) const {
+    std::vector<float> values(values_nb);
+    uint64_t pos = start_pos;
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        std::tie(values[i], pos) = readSingle(pos);
     }
     return {values, pos};
 }
@@ -184,6 +199,11 @@ std::unordered_map<std::string, std::vector<KeyedEntry>> Reader::getKeyedValues(
         if (value.type == ValueType::INTEGER) {
             auto [values, new_pos] = readLineInt(current_pos, values_nb);
             value.integers = std::move(values);
+            current_pos = new_pos;
+
+        } else if (value.type == ValueType::SINGLE) {
+            auto [values, new_pos] = readLineSingle(current_pos, values_nb);
+            value.singles = std::move(values);
             current_pos = new_pos;
 
         } else if (value.type == ValueType::DOUBLE) {
@@ -346,6 +366,22 @@ void Writer::addLineIntegers(const std::string& key,
     }
 }
 
+void Writer::addLineSingles(const std::string& key,
+                            const uint32_t instance_id,
+                            const std::vector<float>& floats) {
+
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, floats.size(), ValueType::SINGLE);
+
+    for (auto f : floats) {
+        auto d_bytes = formatSingle(f);
+        line_bytes.insert(line_bytes.end(), d_bytes.begin(), d_bytes.end());
+    }
+
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) m_keys.push_back(key);
+                            }
+
 void Writer::addLineDoubles(const std::string& key,
                             const uint32_t instance_id,
                             const std::vector<double>& doubles) {
@@ -408,6 +444,19 @@ std::vector<uint8_t> Writer::formatInteger(uint64_t value) {
     }
     return out;
 }
+
+
+std::vector<uint8_t> Writer::formatSingle(const float value) {
+
+    if (value > Constants::GBKF_SINGLE_MAX) {
+        throw std::invalid_argument("Single too large");
+    }
+
+    std::vector<uint8_t> out(Constants::SINGLE_LENGTH);
+    std::memcpy(out.data(), &value, Constants::SINGLE_LENGTH);
+    return out;
+}
+
 
 std::vector<uint8_t> Writer::formatDouble(const double value) {
 

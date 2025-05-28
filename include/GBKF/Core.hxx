@@ -24,7 +24,10 @@
 namespace Core {
     namespace Constants {
 
-        constexpr int DOUBLE_LENGTH = 8;
+        constexpr size_t SINGLE_LENGTH = 4;
+        constexpr double GBKF_SINGLE_MAX = 3.4028235e+38f;
+
+        constexpr size_t DOUBLE_LENGTH = 8;
         constexpr double GBKF_DOUBLE_MAX = 1.7976931348623157e+308;
 
         constexpr int SHA256_LENGTH = 32;
@@ -62,12 +65,14 @@ namespace Core {
     enum class ValueType {
         UNDEFINED = 0,
         INTEGER = 1,
-        DOUBLE = 2
+        SINGLE = 2,
+        DOUBLE = 3,
     };
 
     struct Value {
         ValueType type;
         std::vector<uint64_t> integers;
+        std::vector<float> singles;
         std::vector<double> doubles;
     };
 
@@ -107,8 +112,10 @@ namespace Core {
 
         [[nodiscard]] std::pair<uint64_t, uint64_t> readInt(uint64_t start_pos, uint8_t length) const;
         [[nodiscard]] std::pair<std::string, uint64_t> readAscii(uint64_t start_pos, uint8_t length) const;
+        [[nodiscard]] std::pair<float, uint64_t> readSingle(uint64_t start_pos) const;
         [[nodiscard]] std::pair<double, uint64_t> readDouble(uint64_t start_pos) const;
         [[nodiscard]] std::pair<std::vector<uint64_t>, uint64_t> readLineInt(uint64_t start_pos, uint32_t values_nb) const;
+        [[nodiscard]] std::pair<std::vector<float>, uint64_t> readLineSingle(uint64_t start_pos, uint32_t values_nb) const;
         [[nodiscard]] std::pair<std::vector<double>, uint64_t> readLineDouble(uint64_t start_pos, uint32_t values_nb) const;
     };
 
@@ -128,6 +135,7 @@ namespace Core {
         void addLineIntegers(const std::string& key, uint32_t instance_id, const std::vector<uint16_t>& integers);
         void addLineIntegers(const std::string& key, uint32_t instance_id, const std::vector<uint32_t>& integers);
         void addLineIntegers(const std::string& key, uint32_t instance_id, const std::vector<uint64_t>& integers);
+        void addLineSingles(const std::string& key, uint32_t instance_id, const std::vector<float>& singles);
         void addLineDoubles(const std::string& key, uint32_t instance_id, const std::vector<double>& doubles);
 
         void write(const std::string& write_path, bool auto_update = true);
@@ -147,7 +155,10 @@ namespace Core {
 
         static std::vector<uint8_t> formatInteger(uint64_t value);
 
+        static std::vector<uint8_t> formatSingle(float value);
+
         static std::vector<uint8_t> formatDouble(double value);
+
         void setInteger(uint8_t  value, uint8_t  min_value, uint64_t start_pos);
         void setInteger(uint16_t value, uint16_t min_value, uint64_t start_pos);
         void setInteger(uint32_t value, uint32_t min_value, uint64_t start_pos);
