@@ -20,6 +20,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)  # Optional, disables compiler-specific extensions
 
+if(EMSCRIPTEN)
+    message(STATUS "Detected Emscripten compiler")
+endif()
+
 #
 # Open SSL
 #
@@ -28,10 +32,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)  # Optional, disables compiler-specific extensions
 
 
 #
-# GBKF Core Shared Library
+# GBKF Core Library
 #
 
-add_library(GBKFCore SHARED "${CMAKE_SOURCE_DIR}/lib/Core.cpp")
+if(EMSCRIPTEN)
+    add_library(GBKFCore STATIC lib/Core.cpp)
+else()
+    add_library(GBKFCore SHARED lib/Core.cpp)
+endif()
+
 target_include_directories(GBKFCore PUBLIC ${CMAKE_SOURCE_DIR}/include)
 set_target_properties(GBKFCore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 #target_link_libraries(GBKFCore PUBLIC OpenSSL::Crypto)
