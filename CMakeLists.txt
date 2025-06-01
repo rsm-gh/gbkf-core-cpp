@@ -20,6 +20,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)  # Optional, disables compiler-specific extensions
 
+#
+# Lib type / Emscripten
+#
+
 if(EMSCRIPTEN)
     message(STATUS "Detected Emscripten compiler")
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "Disabling shared libs for Emscripten" FORCE)
@@ -27,11 +31,11 @@ else()
     set(BUILD_SHARED_LIBS ON CACHE BOOL "Using shared libs for non-Emscripten targets" FORCE)
 endif()
 
-option(USE_OPEN_SSL "Use OpenSSL instead of PicoSha2" OFF)
-
 #
 # Open SSL
 #
+
+option(USE_OPEN_SSL "Use OpenSSL instead of PicoSha2" OFF)
 
 if(USE_OPEN_SSL)
     message(STATUS "Using OpenSSL to build the library.")
