@@ -22,28 +22,37 @@ set(CMAKE_CXX_EXTENSIONS OFF)  # Optional, disables compiler-specific extensions
 
 if(EMSCRIPTEN)
     message(STATUS "Detected Emscripten compiler")
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Disabling shared libs for Emscripten" FORCE)
+else()
+    set(BUILD_SHARED_LIBS ON CACHE BOOL "Using shared libs for non-Emscripten targets" FORCE)
 endif()
+
+option(USE_OPEN_SSL "Use OpenSSL instead of PicoSha2" OFF)
 
 #
 # Open SSL
 #
 
-#find_package(OpenSSL REQUIRED)
+if(USE_OPEN_SSL)
+    message(STATUS "Using OpenSSL to build the library.")
+    find_package(OpenSSL REQUIRED)
+else()
+    message(STATUS "Using PicoSha2 to build the library.")
+endif()
 
 
 #
 # GBKF Core Library
 #
 
-if(EMSCRIPTEN)
-    add_library(GBKFCore STATIC lib/Core.cpp)
-else()
-    add_library(GBKFCore SHARED lib/Core.cpp)
-endif()
+add_library(GBKFCore lib/Core.cpp)
 
-target_include_directories(GBKFCore PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(GBKFCore PUBLIC include)
 set_target_properties(GBKFCore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-#target_link_libraries(GBKFCore PUBLIC OpenSSL::Crypto)
+
+if(USE_OPEN_SSL)
+    target_link_libraries(GBKFCore PUBLIC OpenSSL::Crypto)
+endif()
 
 install(TARGETS GBKFCore
     LIBRARY DESTINATION lib
@@ -57,6 +66,6 @@ install(DIRECTORY include/GBKF DESTINATION include)
 # Test GBKFCore
 #
 
-add_executable(test_core "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_core.cpp")
+add_executable(test_core tests/test_core.cpp)
 target_link_libraries(test_core PRIVATE GBKFCore)
 set_target_properties(test_core PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

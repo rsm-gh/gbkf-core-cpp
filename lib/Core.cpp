@@ -17,8 +17,13 @@
 #include <cstring>
 #include <stdexcept>
 #include <algorithm>
-//#include <openssl/sha.h>
-#include "GBKF/picosha2.hxx"
+
+#ifdef USE_OPEN_SSL
+    #include <openssl/sha.h>;
+#else
+    #include "GBKF/picosha2.hxx"
+#endif
+
 #include "GBKF/Core.hxx"
 
 using namespace Core;
@@ -70,18 +75,17 @@ Reader::Reader(const std::string& read_path) {
 
 void Reader::readSha() {
 
-    //           With OpenSSL
-    //
-    //m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_LENGTH, m_bytes_data.end());
-    //m_sha256_calculated.resize(Constants::SHA256_LENGTH);
-    //SHA256(m_bytes_data.data(), m_bytes_data.size() - Constants::SHA256_LENGTH, m_sha256_calculated.data());
+#ifdef USE_OPEN_SSL
+    m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_LENGTH, m_bytes_data.end());
+    m_sha256_calculated.resize(Constants::SHA256_LENGTH);
+    SHA256(m_bytes_data.data(), m_bytes_data.size() - Constants::SHA256_LENGTH, m_sha256_calculated.data());
 
-
-    //           With PicoSha2
-    //
+#else
     m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_LENGTH, m_bytes_data.end());
     m_sha256_calculated.resize(Constants::SHA256_LENGTH);
     picosha2::hash256(m_bytes_data.begin(), m_bytes_data.end() - Constants::SHA256_LENGTH, m_sha256_calculated.begin(), m_sha256_calculated.end());
+
+#endif
 
 }
 
@@ -405,8 +409,12 @@ void Writer::write(const std::string& write_path, const bool auto_update) {
     }
 
     std::vector<uint8_t> hash(Constants::SHA256_LENGTH);
-    //SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
+
+#ifdef USE_OPEN_SSL
+    SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
+#else
     picosha2::hash256(m_byte_buffer.begin(), m_byte_buffer.end(), hash.begin(), hash.end());
+#endif
 
     std::ofstream file(write_path, std::ios::binary);
 
