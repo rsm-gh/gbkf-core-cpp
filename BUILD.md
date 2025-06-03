@@ -1,7 +1,7 @@
 
 ## Cmake
 ```
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 make install
 ```
@@ -11,7 +11,7 @@ by default without adding it into the `ldconfig` path.
 
 ## Emscripten
 ```
-emcmake cmake ..
+emcmake cmake -DCMAKE_BUILD_TYPE=Release ..
 emmake make
 ```
 
