@@ -24,9 +24,9 @@
     #include "GBKF/picosha2.hxx"
 #endif
 
-#include "GBKF/Core.hxx"
+#include "GBKF/GBKFCore.hxx"
 
-using namespace Core;
+using namespace GBKFCore;
 
 
 Reader::Reader(const std::vector<uint8_t>& data) {

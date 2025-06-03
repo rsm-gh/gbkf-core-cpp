@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-namespace Core {
+namespace GBKFCore {
     namespace Constants {
 
         constexpr size_t SINGLE_LENGTH = 4;

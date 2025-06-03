@@ -17,7 +17,7 @@
 #include <iostream>
 #include <filesystem>
 #include <limits>
-#include "GBKF/Core.hxx"
+#include "GBKF/GBKFCore.hxx"
 
 void testHeader() {
     std::string path = "test_core_header.gbkf";
@@ -38,7 +38,7 @@ void testHeader() {
 
     for (size_t i = 0; i < tests.size(); ++i) {
         std::string file = "test_core_header_" + std::to_string(i) + ".gbkf";
-        Core::Writer writer;
+        GBKFCore::Writer writer;
         writer.setGbkfVersion(tests[i].gbkf_version);
         writer.setSpecificationId(tests[i].spec_id);
         writer.setSpecificationVersion(tests[i].spec_version);
@@ -46,7 +46,7 @@ void testHeader() {
         writer.setKeyedValuesNb(tests[i].keyed_values_nb);
         writer.write(file, false);
 
-        Core::Reader reader(file);
+        GBKFCore::Reader reader(file);
         assert(reader.getGbkfVersion() == tests[i].gbkf_version);
         assert(reader.getSpecificationId() == tests[i].spec_id);
         assert(reader.getSpecificationVersion() == tests[i].spec_version);
@@ -55,13 +55,13 @@ void testHeader() {
         assert(reader.verifiesSha());
     }
 
-    std::cout << "test OK > Core Header.\n";
+    std::cout << "test OK > GBKFCore Header.\n";
 }
 
 void testValues() {
     std::string path = "test_core_values.gbkf";
 
-    Core::Writer writer;
+    GBKFCore::Writer writer;
     writer.setKeysLength(2);
     std::vector<uint64_t> pos1_values = {1,2,3,4,5,6,7,8,9,10};
     std::vector<uint64_t> pos2_values = {100,200,300,400,500,600,700,800,900,1000};
@@ -74,35 +74,35 @@ void testValues() {
     writer.addLineDoubles("DD", 1, double_values);
     writer.write(path, true);
 
-    Core::Reader reader(path);
+    GBKFCore::Reader reader(path);
     auto map = reader.getKeyedValues();
 
     auto ip1 = map["IP"][0];
     assert(ip1.instance_id == 1);
-    assert(ip1.value.type == Core::ValueType::INTEGER);
+    assert(ip1.value.type == GBKFCore::ValueType::INTEGER);
     assert(ip1.value.integers == pos1_values);
 
     auto ip2 = map["IP"][1];
     assert(ip2.instance_id == 2);
-    assert(ip2.value.type == Core::ValueType::INTEGER);
+    assert(ip2.value.type == GBKFCore::ValueType::INTEGER);
     assert(ip2.value.integers == pos2_values);
 
     auto ss = map["SS"][0];
     assert(ss.instance_id == 5);
-    assert(ss.value.type == Core::ValueType::SINGLE);
+    assert(ss.value.type == GBKFCore::ValueType::SINGLE);
     for (size_t i = 0; i < single_values.size(); ++i) {
         assert(std::abs(ss.value.singles[i] - single_values[i]) < 1e-6);
     }
 
     auto dd = map["DD"][0];
     assert(dd.instance_id == 1);
-    assert(dd.value.type == Core::ValueType::DOUBLE);
+    assert(dd.value.type == GBKFCore::ValueType::DOUBLE);
     for (size_t i = 0; i < double_values.size(); ++i) {
         assert(std::abs(dd.value.doubles[i] - double_values[i]) < 1e-6);
     }
 
     assert(reader.verifiesSha());
-    std::cout << "test OK > Core Values.\n";
+    std::cout << "test OK > GBKFCore Values.\n";
 }
 
 int main() {
