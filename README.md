@@ -1,2 +1,2 @@
 
-C++ implementation of the [Generic Binary Keyed Format (*.gbkf)](https://rsm92.dev/gbkf).
+C++ implementation of the [Generic Binary Keyed Format (*.gbkf)](https://gbkf-format.org).
