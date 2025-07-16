@@ -1,4 +1,5 @@
 
+#
 #   This file is part of gbkf-core-cpp.
 #
 # Copyright (c) 2025 Rafael Senties Martinelli.
@@ -10,7 +11,7 @@
 # The authors are not liable for any damages arising from its use.
 #
 # See the LICENSE file for more details.
-
+#
 
 cmake_minimum_required(VERSION 3.10)
 

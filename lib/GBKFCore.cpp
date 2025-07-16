@@ -159,7 +159,7 @@ std::pair<double, uint64_t> Reader::readDouble(const uint64_t start_pos) const {
 }
 
 std::pair<std::vector<uint64_t>, uint64_t> Reader::readLineInt(const uint64_t start_pos, const uint32_t values_nb) const {
-    auto [integers_length, pos] = readInt(start_pos, Constants::KeyedValues::INTEGERS_LENGTH_LENGTH);
+    auto [integers_length, pos] = readInt(start_pos, Constants::KeyedEntry::INTEGERS_LENGTH_LENGTH);
     std::vector<uint64_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
         std::tie(values[i], pos) = readInt(pos, integers_length);
@@ -185,43 +185,59 @@ std::pair<std::vector<double>, uint64_t> Reader::readLineDouble(const uint64_t s
     return {values, pos};
 }
 
-std::unordered_map<std::string, std::vector<KeyedEntry>> Reader::getKeyedValues() const {
+std::unordered_map<std::string, std::vector<KeyedEntry>> Reader::getKeyedEntries() const {
 
-    std::unordered_map<std::string, std::vector<KeyedEntry>> keyed_values;
+    std::unordered_map<std::string, std::vector<KeyedEntry>> keyed_entries_mapping;
 
     uint64_t current_pos = Constants::Header::LENGTH;
+
     for (uint32_t i = 0; i < m_keyed_values_nb; ++i) {
         auto [key, p1] = readAscii(current_pos, m_keys_length);
-        auto [instance_id, p2] = readInt(p1, Constants::KeyedValues::INSTANCE_ID_LENGTH);
-        auto [values_nb, p3] = readInt(p2, Constants::KeyedValues::VALUES_NB_LENGTH);
-        auto [value_type, p4] = readInt(p3, Constants::KeyedValues::VALUES_TYPE_LENGTH);
+        auto [instance_id, p2] = readInt(p1, Constants::KeyedEntry::INSTANCE_ID_LENGTH);
+        auto [values_nb, p3] = readInt(p2, Constants::KeyedEntry::VALUES_NB_LENGTH);
+        auto [values_type, p4] = readInt(p3, Constants::KeyedEntry::VALUES_TYPE_LENGTH);
         current_pos = p4;
 
-        Value value;
-        value.type = static_cast<ValueType>(value_type);
+        KeyedEntry keyed_entry;
+        keyed_entry.instance_id = instance_id;
+        keyed_entry.type = static_cast<ValueType>(values_type);
 
-        if (value.type == ValueType::INTEGER) {
-            auto [values, new_pos] = readLineInt(current_pos, values_nb);
-            value.integers = std::move(values);
-            current_pos = new_pos;
+        switch (keyed_entry.type) {
 
-        } else if (value.type == ValueType::SINGLE) {
-            auto [values, new_pos] = readLineSingle(current_pos, values_nb);
-            value.singles = std::move(values);
-            current_pos = new_pos;
+            case ValueType::INTEGER: {
+                auto [values, new_pos] = readLineInt(current_pos, values_nb);
+                keyed_entry.values = std::make_shared<std::vector<uint64_t>>(std::move(values));
+                current_pos = new_pos;
+                break;
+            }
 
-        } else if (value.type == ValueType::DOUBLE) {
-            auto [values, new_pos] = readLineDouble(current_pos, values_nb);
-            value.doubles = std::move(values);
-            current_pos = new_pos;
+            case ValueType::SINGLE: {
+                auto [values, new_pos] = readLineSingle(current_pos, values_nb);
+                keyed_entry.values = std::make_shared<std::vector<float>>(std::move(values));
+                current_pos = new_pos;
+                break;
+            }
 
-        } else {
-            throw std::runtime_error("Unsupported value type");
+            case ValueType::DOUBLE: {
+                auto [values, new_pos] = readLineDouble(current_pos, values_nb);
+                keyed_entry.values = std::make_shared<std::vector<double>>(std::move(values));
+                current_pos = new_pos;
+                break;
+            }
+
+            default: {
+                throw std::runtime_error("Unsupported value type");
+            };
         }
 
-        keyed_values[key].push_back(KeyedEntry{static_cast<uint32_t>(instance_id), value});
+        if (keyed_entries_mapping.find(key) != keyed_entries_mapping.end()) {
+            keyed_entries_mapping[key].push_back(keyed_entry);
+        } else {
+            const std::vector<KeyedEntry> new_key_data = {std::move(keyed_entry)};
+            keyed_entries_mapping[key] = new_key_data;
+        }
     }
-    return keyed_values;
+    return keyed_entries_mapping;
 }
 
 Writer::Writer() {

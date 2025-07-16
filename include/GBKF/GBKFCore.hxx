@@ -19,6 +19,8 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <memory>
+#include <optional>
 #include <unordered_map>
 
 namespace GBKFCore {
@@ -54,7 +56,7 @@ namespace GBKFCore {
             constexpr int LENGTH = KEYED_VALUES_NB_START + KEYED_VALUES_NB_LENGTH;
         }
 
-        namespace KeyedValues {
+        namespace KeyedEntry {
             constexpr int INSTANCE_ID_LENGTH = 4;
             constexpr int VALUES_NB_LENGTH = 4;
             constexpr int VALUES_TYPE_LENGTH = 1;
@@ -69,17 +71,16 @@ namespace GBKFCore {
         DOUBLE = 3,
     };
 
-    struct Value {
-        ValueType type;
-        std::vector<uint64_t> integers;
-        std::vector<float> singles;
-        std::vector<double> doubles;
-    };
-
     struct KeyedEntry {
         uint32_t instance_id = 0;
-        Value value;
+        ValueType type;
+        std::shared_ptr<void> values;
     };
+
+    template <typename T>
+    std::vector<T>& cast_values(KeyedEntry& keyed_entry) {
+        return *static_cast<std::vector<T>*>(keyed_entry.values.get());
+    }
 
     class Reader {
     public:
@@ -94,7 +95,7 @@ namespace GBKFCore {
         [[nodiscard]] uint8_t getKeysLength() const;
         [[nodiscard]] uint32_t getKeyedValuesNb() const;
 
-        [[nodiscard]] std::unordered_map<std::string, std::vector<KeyedEntry>> getKeyedValues() const;
+        [[nodiscard]] std::unordered_map<std::string, std::vector<KeyedEntry>> getKeyedEntries() const;
 
     private:
         std::vector<uint8_t> m_bytes_data;

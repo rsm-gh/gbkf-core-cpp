@@ -75,30 +75,33 @@ void testValues() {
     writer.write(path, true);
 
     GBKFCore::Reader reader(path);
-    auto map = reader.getKeyedValues();
+    auto map = reader.getKeyedEntries();
 
     auto ip1 = map["IP"][0];
     assert(ip1.instance_id == 1);
-    assert(ip1.value.type == GBKFCore::ValueType::INTEGER);
-    assert(ip1.value.integers == pos1_values);
+    assert(ip1.type == GBKFCore::ValueType::INTEGER);
+    assert(GBKFCore::cast_values<uint64_t>(ip1) == pos1_values);
 
     auto ip2 = map["IP"][1];
     assert(ip2.instance_id == 2);
-    assert(ip2.value.type == GBKFCore::ValueType::INTEGER);
-    assert(ip2.value.integers == pos2_values);
+    assert(ip2.type == GBKFCore::ValueType::INTEGER);
+    assert(GBKFCore::cast_values<uint64_t>(ip2) == pos2_values);
 
     auto ss = map["SS"][0];
     assert(ss.instance_id == 5);
-    assert(ss.value.type == GBKFCore::ValueType::SINGLE);
+    assert(ss.type == GBKFCore::ValueType::SINGLE);
+
+    std::vector<float> singles = GBKFCore::cast_values<float>(ss);
     for (size_t i = 0; i < single_values.size(); ++i) {
-        assert(std::abs(ss.value.singles[i] - single_values[i]) < 1e-6);
+        assert(std::abs(singles[i] - single_values[i]) < 1e-6);
     }
 
     auto dd = map["DD"][0];
     assert(dd.instance_id == 1);
-    assert(dd.value.type == GBKFCore::ValueType::DOUBLE);
+    assert(dd.type == GBKFCore::ValueType::DOUBLE);
+    std::vector<double> doubles = GBKFCore::cast_values<double>(dd);
     for (size_t i = 0; i < double_values.size(); ++i) {
-        assert(std::abs(dd.value.doubles[i] - double_values[i]) < 1e-6);
+        assert(std::abs(doubles[i] - double_values[i]) < 1e-6);
     }
 
     assert(reader.verifiesSha());
