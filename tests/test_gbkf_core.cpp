@@ -63,13 +63,18 @@ void testValues() {
 
     GBKFCore::Writer writer;
     writer.setKeysLength(2);
-    std::vector<uint64_t> pos1_values = {1,2,3,4,5,6,7,8,9,10};
-    std::vector<uint64_t> pos2_values = {100,200,300,400,500,600,700,800,900,1000};
+    std::vector<uint8_t> input_values_uint8 = {1,2,3,4,5,6,7,8,9,10,255};
+    std::vector<uint16_t> input_values_uint16 = {1,200,300,400,45,600,700,800,900,1000};
+    std::vector<uint32_t> input_values_uint32 = {100,200,1,400,500,600,700,454545,900,1000};
+    std::vector<uint64_t> input_values_uint64 = {100,454545,300,400,500,600,1,800,900,1000};
     std::vector<float> single_values = {0, .3467846785, 6.5, 110.9, -15000.865};
     std::vector<double> double_values = {0, .3434546785, 1.5, 1000.9, -10000.865};
 
-    writer.addLineIntegers("IP", 1, pos1_values);
-    writer.addLineIntegers("IP", 2, pos2_values);
+    writer.addLineIntegers("IP", 1, input_values_uint8);
+    writer.addLineIntegers("IP", 2, input_values_uint16);
+    writer.addLineIntegers("IP", 3, input_values_uint32);
+    writer.addLineIntegers("IP", 4, input_values_uint64);
+
     writer.addLineSingles("SS", 5, single_values);
     writer.addLineDoubles("DD", 1, double_values);
     writer.write(path, true);
@@ -77,18 +82,25 @@ void testValues() {
     GBKFCore::Reader reader(path);
     auto map = reader.getKeyedEntries();
 
-    auto ip1 = map["IP"][0];
-    assert(ip1.instance_id == 1);
-    assert(ip1.getType() == GBKFCore::ValueType::INTEGER);
+    auto output_entry_uint8 = map["IP"][0];
+    assert(output_entry_uint8.instance_id == 1);
+    assert(output_entry_uint8.getType() == GBKFCore::ValueType::UINT8);
+    assert(output_entry_uint8.getValues<uint8_t>() == input_values_uint8);
 
-    auto values = ip1.getValues<uint8_t>();
+    auto output_entry_uint16 = map["IP"][1];
+    assert(output_entry_uint16.instance_id == 2);
+    assert(output_entry_uint16.getType() == GBKFCore::ValueType::UINT16);
+    assert(output_entry_uint16.getValues<uint16_t>() == input_values_uint16);
 
-    assert(ip1.getValues<uint64_t>() == pos1_values);
+    auto output_entry_uint32 = map["IP"][2];
+    assert(output_entry_uint32.instance_id == 3);
+    assert(output_entry_uint32.getType() == GBKFCore::ValueType::UINT32);
+    assert(output_entry_uint32.getValues<uint32_t>() == input_values_uint32);
 
-    auto ip2 = map["IP"][1];
-    assert(ip2.instance_id == 2);
-    assert(ip2.getType() == GBKFCore::ValueType::INTEGER);
-    assert(ip2.getValues<uint64_t>() == pos2_values);
+    auto output_entry_uint64 = map["IP"][3];
+    assert(output_entry_uint64.instance_id == 4);
+    assert(output_entry_uint64.getType() == GBKFCore::ValueType::UINT64);
+    assert(output_entry_uint64.getValues<uint64_t>() == input_values_uint64);
 
     auto ss = map["SS"][0];
     assert(ss.instance_id == 5);

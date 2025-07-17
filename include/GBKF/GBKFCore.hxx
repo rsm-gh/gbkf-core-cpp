@@ -65,10 +65,21 @@ namespace GBKFCore {
     }
 
     enum class ValueType {
-        UNDEFINED = 0,
-        INTEGER = 1,
-        SINGLE = 2,
-        DOUBLE = 3,
+
+        BLOB = 0,
+
+        //INT8 =  10,
+        //INT32 = 11,
+        //INT16 = 12,
+        //INT64 = 13,
+
+        UINT8 =  20,
+        UINT16 = 21,
+        UINT32 = 22,
+        UINT64 = 23,
+
+        SINGLE = 30,
+        DOUBLE = 35,
     };
 
     class KeyedEntry {
@@ -106,15 +117,30 @@ namespace GBKFCore {
 
     inline KeyedEntry::KeyedEntry(const ValueType type) : m_type(type) {
         switch (type) {
-            case ValueType::INTEGER:
-                m_values = std::make_shared<std::vector<int>>();
+            case ValueType::UINT8:
+                m_values = std::make_shared<std::vector<uint8_t>>();
                 break;
+
+            case ValueType::UINT16:
+                m_values = std::make_shared<std::vector<uint16_t>>();
+                break;
+
+            case ValueType::UINT32:
+                m_values = std::make_shared<std::vector<uint32_t>>();
+                break;
+
+            case ValueType::UINT64:
+                m_values = std::make_shared<std::vector<uint64_t>>();
+                break;
+
             case ValueType::SINGLE:
                 m_values = std::make_shared<std::vector<float>>();
                 break;
+
             case ValueType::DOUBLE:
                 m_values = std::make_shared<std::vector<double>>();
                 break;
+
             default:
                 throw std::invalid_argument("Unsupported type");
         }
@@ -157,29 +183,27 @@ namespace GBKFCore {
     template <typename T>
     ValueType KeyedEntry::deduceValueType() {
 
-        if constexpr (
-            std::is_same_v<T, int8_t> ||
-            std::is_same_v<T, uint8_t> ||
-            std::is_same_v<T, int16_t> ||
-            std::is_same_v<T, uint16_t> ||
-            std::is_same_v<T, int32_t> ||
-            std::is_same_v<T, uint32_t> ||
-            std::is_same_v<T, int64_t> ||
-            std::is_same_v<T, uint64_t> ||
-            std::is_same_v<T, int> ||
-            std::is_same_v<T, unsigned int>
-            ) {
-            return ValueType::INTEGER;
+        if constexpr (std::is_same_v<T, uint8_t>) {
+            return ValueType::UINT8;
 
-            }else if constexpr (std::is_same_v<T, float>) {
-                return ValueType::SINGLE;
+        }else if constexpr (std::is_same_v<T, uint16_t>) {
+            return ValueType::UINT16;
 
-            }else if constexpr (std::is_same_v<T, double>) {
-                return ValueType::DOUBLE;
+        }else if constexpr (std::is_same_v<T, uint32_t>) {
+            return ValueType::UINT32;
 
-            }else {
-                throw std::invalid_argument("Unsupported type");
-            }
+        }else if constexpr (std::is_same_v<T, uint64_t>) {
+            return ValueType::UINT64;
+
+        }else if constexpr (std::is_same_v<T, float>) {
+            return ValueType::SINGLE;
+
+        }else if constexpr (std::is_same_v<T, double>) {
+            return ValueType::DOUBLE;
+
+        }else {
+            throw std::invalid_argument("Unsupported type");
+        }
     }
 
 
@@ -216,7 +240,10 @@ namespace GBKFCore {
         [[nodiscard]] std::pair<std::string, uint64_t> readAscii(uint64_t start_pos, uint8_t length) const;
         [[nodiscard]] std::pair<float, uint64_t> readSingle(uint64_t start_pos) const;
         [[nodiscard]] std::pair<double, uint64_t> readDouble(uint64_t start_pos) const;
-        [[nodiscard]] std::pair<std::vector<uint64_t>, uint64_t> readLineInt(uint64_t start_pos, uint32_t values_nb) const;
+        [[nodiscard]] std::pair<std::vector<uint8_t>, uint64_t> readLineUInt8(uint64_t start_pos, uint32_t values_nb) const;
+        [[nodiscard]] std::pair<std::vector<uint16_t>, uint64_t> readLineUInt16(uint64_t start_pos, uint32_t values_nb) const;
+        [[nodiscard]] std::pair<std::vector<uint32_t>, uint64_t> readLineUInt32(uint64_t start_pos, uint32_t values_nb) const;
+        [[nodiscard]] std::pair<std::vector<uint64_t>, uint64_t> readLineUInt64(uint64_t start_pos, uint32_t values_nb) const;
         [[nodiscard]] std::pair<std::vector<float>, uint64_t> readLineSingle(uint64_t start_pos, uint32_t values_nb) const;
         [[nodiscard]] std::pair<std::vector<double>, uint64_t> readLineDouble(uint64_t start_pos, uint32_t values_nb) const;
     };

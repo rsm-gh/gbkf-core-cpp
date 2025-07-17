@@ -158,7 +158,38 @@ std::pair<double, uint64_t> Reader::readDouble(const uint64_t start_pos) const {
     return {value, start_pos + Constants::DOUBLE_LENGTH};
 }
 
-std::pair<std::vector<uint64_t>, uint64_t> Reader::readLineInt(const uint64_t start_pos, const uint32_t values_nb) const {
+std::pair<std::vector<uint8_t>, uint64_t> Reader::readLineUInt8(const uint64_t start_pos, const uint32_t values_nb) const {
+    // Todo: remove integers_length, since its always 1 for uint8
+    auto [integers_length, pos] = readInt(start_pos, Constants::KeyedEntry::INTEGERS_LENGTH_LENGTH);
+    std::vector<uint8_t> values(values_nb);
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        std::tie(values[i], pos) = readInt(pos, integers_length);
+    }
+    return {values, pos};
+}
+
+std::pair<std::vector<uint16_t>, uint64_t> Reader::readLineUInt16(const uint64_t start_pos, const uint32_t values_nb) const {
+    // Todo: remove integers_length, since its always 2 for uint16
+    auto [integers_length, pos] = readInt(start_pos, Constants::KeyedEntry::INTEGERS_LENGTH_LENGTH);
+    std::vector<uint16_t> values(values_nb);
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        std::tie(values[i], pos) = readInt(pos, integers_length);
+    }
+    return {values, pos};
+}
+
+std::pair<std::vector<uint32_t>, uint64_t> Reader::readLineUInt32(const uint64_t start_pos, const uint32_t values_nb) const {
+    // Todo: remove integers_length, since its always 4 for uint32
+    auto [integers_length, pos] = readInt(start_pos, Constants::KeyedEntry::INTEGERS_LENGTH_LENGTH);
+    std::vector<uint32_t> values(values_nb);
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        std::tie(values[i], pos) = readInt(pos, integers_length);
+    }
+    return {values, pos};
+}
+
+std::pair<std::vector<uint64_t>, uint64_t> Reader::readLineUInt64(const uint64_t start_pos, const uint32_t values_nb) const {
+    // Todo: remove integers_length, since its always 8 for uint64
     auto [integers_length, pos] = readInt(start_pos, Constants::KeyedEntry::INTEGERS_LENGTH_LENGTH);
     std::vector<uint64_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
@@ -203,8 +234,29 @@ std::unordered_map<std::string, std::vector<KeyedEntry>> Reader::getKeyedEntries
 
         switch (keyed_entry.getType()) {
 
-            case ValueType::INTEGER: {
-                auto [values, new_pos] = readLineInt(current_pos, values_nb);
+            case ValueType::UINT8: {
+                auto [values, new_pos] = readLineUInt8(current_pos, values_nb);
+                keyed_entry.addValues(values);
+                current_pos = new_pos;
+                break;
+            }
+
+            case ValueType::UINT16: {
+                auto [values, new_pos] = readLineUInt16(current_pos, values_nb);
+                keyed_entry.addValues(values);
+                current_pos = new_pos;
+                break;
+            }
+
+            case ValueType::UINT32: {
+                auto [values, new_pos] = readLineUInt32(current_pos, values_nb);
+                keyed_entry.addValues(values);
+                current_pos = new_pos;
+                break;
+            }
+
+            case ValueType::UINT64: {
+                auto [values, new_pos] = readLineUInt64(current_pos, values_nb);
                 keyed_entry.addValues(values);
                 current_pos = new_pos;
                 break;
@@ -293,7 +345,7 @@ void Writer::addLineIntegers(const std::string& key,
                              const std::vector<uint8_t>& integers) {
 
     // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::INTEGER);
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::UINT8);
 
     // Set the integer length
     line_bytes.push_back(1);
@@ -315,7 +367,7 @@ void Writer::addLineIntegers(const std::string& key,
                              const std::vector<uint16_t>& integers) {
 
     // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::INTEGER);
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::UINT16);
 
     // Set the integer length
     line_bytes.push_back(2);
@@ -340,7 +392,7 @@ void Writer::addLineIntegers(const std::string& key,
                              const std::vector<uint32_t>& integers) {
 
     // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::INTEGER);
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::UINT32);
 
     // Set the integer length
     line_bytes.push_back(4);
@@ -365,7 +417,7 @@ void Writer::addLineIntegers(const std::string& key,
                              const std::vector<uint64_t>& integers) {
 
     // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::INTEGER);
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::UINT64);
 
     // Set the integer length
     line_bytes.push_back(8);
