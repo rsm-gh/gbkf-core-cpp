@@ -20,6 +20,7 @@
 #include <string>
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 #include <unordered_map>
 
 namespace GBKFCore {
@@ -70,16 +71,117 @@ namespace GBKFCore {
         DOUBLE = 3,
     };
 
-    struct KeyedEntry {
+    class KeyedEntry {
+    public:
+
         uint32_t instance_id = 0;
-        ValueType type;
-        std::shared_ptr<void> values;
+
+        explicit KeyedEntry(ValueType type);
+
+        template <typename T>
+        explicit KeyedEntry(std::vector<T> initial_values);
+
+        template <typename T>
+        void addValue(const T& val);
+
+        template <typename T>
+        void addValues(const std::vector<T>& values);
+
+        [[nodiscard]] ValueType getType() const;
+
+        template <typename T>
+        [[nodiscard]] std::vector<T>& getValues();
+
+    private:
+        ValueType m_type;
+        std::shared_ptr<void> m_values;
+
+        template <typename T>
+        static ValueType deduceValueType();
+
+        template <typename T>
+        void ensureType() const;
+
     };
 
-    template <typename T>
-    std::vector<T>& cast_values(KeyedEntry& keyed_entry) {
-        return *static_cast<std::vector<T>*>(keyed_entry.values.get());
+    inline KeyedEntry::KeyedEntry(const ValueType type) : m_type(type) {
+        switch (type) {
+            case ValueType::INTEGER:
+                m_values = std::make_shared<std::vector<int>>();
+                break;
+            case ValueType::SINGLE:
+                m_values = std::make_shared<std::vector<float>>();
+                break;
+            case ValueType::DOUBLE:
+                m_values = std::make_shared<std::vector<double>>();
+                break;
+            default:
+                throw std::invalid_argument("Unsupported type");
+        }
     }
+
+    template <typename T>
+    KeyedEntry::KeyedEntry(std::vector<T> initial_values)
+        : m_type(deduceValueType<T>()), m_values(std::make_shared<std::vector<T>>(std::move(initial_values))) {}
+
+    template <typename T>
+    void KeyedEntry::addValue(const T& val) {
+        ensureType<T>();
+        getValues<T>()->push_back(val);
+    }
+
+    template <typename T>
+    void KeyedEntry::addValues(const std::vector<T>& values) {
+        ensureType<T>();
+        auto& vec = getValues<T>();
+        vec.insert(vec.end(), values.begin(), values.end());
+    }
+
+    inline ValueType KeyedEntry::getType() const {
+        return m_type;
+    }
+
+    template <typename T>
+    std::vector<T>& KeyedEntry::getValues() {
+        ensureType<T>();
+        return *static_cast<std::vector<T>*>(m_values.get());
+    }
+
+    template <typename T>
+    void KeyedEntry::ensureType() const {
+        if (m_type != deduceValueType<T>())
+            throw std::runtime_error("Type mismatch on KeyedEntry access");
+    }
+
+
+    template <typename T>
+    ValueType KeyedEntry::deduceValueType() {
+
+        if constexpr (
+            std::is_same_v<T, int8_t> ||
+            std::is_same_v<T, uint8_t> ||
+            std::is_same_v<T, int16_t> ||
+            std::is_same_v<T, uint16_t> ||
+            std::is_same_v<T, int32_t> ||
+            std::is_same_v<T, uint32_t> ||
+            std::is_same_v<T, int64_t> ||
+            std::is_same_v<T, uint64_t> ||
+            std::is_same_v<T, int> ||
+            std::is_same_v<T, unsigned int>
+            ) {
+            return ValueType::INTEGER;
+
+            }else if constexpr (std::is_same_v<T, float>) {
+                return ValueType::SINGLE;
+
+            }else if constexpr (std::is_same_v<T, double>) {
+                return ValueType::DOUBLE;
+
+            }else {
+                throw std::invalid_argument("Unsupported type");
+            }
+    }
+
 
     class Reader {
     public:

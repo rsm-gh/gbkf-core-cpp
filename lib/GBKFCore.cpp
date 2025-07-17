@@ -15,6 +15,7 @@
 
 #include <fstream>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 #include <algorithm>
 
@@ -27,7 +28,6 @@
 #include "GBKF/GBKFCore.hxx"
 
 using namespace GBKFCore;
-
 
 Reader::Reader(const std::vector<uint8_t>& data) {
 
@@ -198,29 +198,28 @@ std::unordered_map<std::string, std::vector<KeyedEntry>> Reader::getKeyedEntries
         auto [values_type, p4] = readInt(p3, Constants::KeyedEntry::VALUES_TYPE_LENGTH);
         current_pos = p4;
 
-        KeyedEntry keyed_entry;
-        keyed_entry.instance_id = instance_id;
-        keyed_entry.type = static_cast<ValueType>(values_type);
+        KeyedEntry keyed_entry (static_cast<ValueType>(values_type));
+        keyed_entry.instance_id = static_cast<uint32_t>(instance_id);
 
-        switch (keyed_entry.type) {
+        switch (keyed_entry.getType()) {
 
             case ValueType::INTEGER: {
                 auto [values, new_pos] = readLineInt(current_pos, values_nb);
-                keyed_entry.values = std::make_shared<std::vector<uint64_t>>(std::move(values));
+                keyed_entry.addValues(values);
                 current_pos = new_pos;
                 break;
             }
 
             case ValueType::SINGLE: {
                 auto [values, new_pos] = readLineSingle(current_pos, values_nb);
-                keyed_entry.values = std::make_shared<std::vector<float>>(std::move(values));
+                keyed_entry.addValues(values);
                 current_pos = new_pos;
                 break;
             }
 
             case ValueType::DOUBLE: {
                 auto [values, new_pos] = readLineDouble(current_pos, values_nb);
-                keyed_entry.values = std::make_shared<std::vector<double>>(std::move(values));
+                keyed_entry.addValues(values);
                 current_pos = new_pos;
                 break;
             }
@@ -233,7 +232,7 @@ std::unordered_map<std::string, std::vector<KeyedEntry>> Reader::getKeyedEntries
         if (keyed_entries_mapping.find(key) != keyed_entries_mapping.end()) {
             keyed_entries_mapping[key].push_back(keyed_entry);
         } else {
-            const std::vector<KeyedEntry> new_key_data = {std::move(keyed_entry)};
+            const std::vector<KeyedEntry> new_key_data = {keyed_entry};
             keyed_entries_mapping[key] = new_key_data;
         }
     }
