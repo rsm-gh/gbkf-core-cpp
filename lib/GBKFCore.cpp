@@ -109,6 +109,15 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > Reader::getKeyedEntrie
         keyed_entry.instance_id = instance_id;
 
         switch (keyed_entry.getType()) {
+
+            case ValueType::BOOLEAN: {
+                auto [last_byte_bools_nb, pos1] = readUInt8(current_pos);
+                auto [values, pos2] = readValuesBool(pos1, values_nb, last_byte_bools_nb);
+                keyed_entry.addValues(values);
+                current_pos = pos2;
+                break;
+            }
+
             case ValueType::INT8: {
                 auto [values, new_pos] = readValuesInt8(current_pos, values_nb);
                 keyed_entry.addValues(values);
@@ -271,6 +280,28 @@ std::pair<double, uint64_t> Reader::readFloat64(const uint64_t start_pos) const 
     return {value, start_pos + Constants::FLOAT62_LENGTH};
 }
 
+std::pair<std::vector<bool>, uint64_t> Reader::readValuesBool(uint64_t start_pos,
+                                                              const uint32_t values_nb,
+                                                              const uint8_t last_byte_bools_nb) const {
+
+    std::vector<bool> values;
+    values.reserve(values_nb);
+
+    const uint32_t bytes_nb = values_nb / 8 + (last_byte_bools_nb == 8 ? 0 : 1);
+
+    for (uint32_t i = 0; i < bytes_nb; ++i) {
+        auto [byte, new_pos] = readUInt8(start_pos);
+        start_pos = new_pos;
+
+        const uint8_t bits_to_process = (i == bytes_nb - 1) ? last_byte_bools_nb : 8;
+        for (uint8_t bit = 0; bit < bits_to_process; ++bit) {
+            values.push_back((byte >> bit) & 1);
+        }
+    }
+
+    return {values, start_pos};
+}
+
 std::pair<std::vector<int8_t>, uint64_t> Reader::readValuesInt8(uint64_t start_pos, const uint32_t values_nb) const {
     std::vector<int8_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
@@ -413,6 +444,37 @@ void Writer::setKeyedValuesNb(const uint32_t value) {
 
 void Writer::setKeyedValuesNbAuto() {
     setKeyedValuesNb(m_keyed_values_nb);
+}
+
+void Writer::addKeyedValuesBoolean(const std::string &key,
+                                   const uint32_t instance_id,
+                                   const std::vector<bool> &values) {
+    // Set the header
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::BOOLEAN);
+
+    // Set the last byte number of used booleans
+    uint8_t last_bools_nb = values.size() % 8;
+    if (last_bools_nb == 0 && !values.empty()) {
+        last_bools_nb = 8;
+    }
+    line_bytes.push_back(last_bools_nb);
+
+    // Pack the booleans into bytes
+    std::vector<uint8_t> packed((values.size() + 7) / 8, 0); // ceil(size/8)
+    for (size_t i = 0; i < values.size(); ++i) {
+        if (values[i]) {
+            packed[i / 8] |= (1 << (i % 8)); // LSB-first packing
+        }
+    }
+    line_bytes.insert(line_bytes.end(), packed.begin(), packed.end());
+
+    // Add to the buffer
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
 }
 
 void Writer::addKeyedValuesInt8(const std::string &key,

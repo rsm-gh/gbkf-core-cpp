@@ -76,8 +76,10 @@ void testValues() {
     std::vector<int32_t> input_values_int32 = {100, 200, 1, 400, 500, -600, 700, 454545, -900, 1000};
     std::vector<int64_t> input_values_int64 = {100, -454545, 300, 400, 500, 600, 1, 800, -900, 1000};
 
+    std::vector<bool> input_booleans = {true, true, true, true, false, false, false, false, true, false};
     std::vector<float> input_floats32 = {0, .3467846785, 6.5, 110.9, -15000.865};
     std::vector<double> input_floats64 = {0, .3434546785, 1.5, 1000.9, -10000.865};
+
 
     writer.addKeyedValuesUInt8("UI", 1, input_values_uint8);
     writer.addKeyedValuesUInt16("UI", 2, input_values_uint16);
@@ -89,6 +91,7 @@ void testValues() {
     writer.addKeyedValuesInt32("SI", 3, input_values_int32);
     writer.addKeyedValuesInt64("SI", 4, input_values_int64);
 
+    writer.addKeyedValuesBoolean("BO", 1, input_booleans);
     writer.addKeyedValuesFloat32("F3", 5, input_floats32);
     writer.addKeyedValuesFloat64("F6", 1, input_floats64);
 
@@ -129,10 +132,17 @@ void testValues() {
     assert(output_entry_int64.instance_id == 4);
     assert(output_entry_int64.getValues<int64_t>(GBKFCore::ValueType::INT64) == input_values_int64);
 
+    auto output_entry_boolean = map["BO"][0];
+    assert(output_entry_boolean.instance_id == 1);
+    assert(output_entry_boolean.getType() == GBKFCore::ValueType::BOOLEAN);
+    std::vector<bool> output_booleans = output_entry_boolean.getValues<bool>();
+    for (size_t i = 0; i < input_booleans.size(); ++i) {
+        assert(output_booleans[i] == input_booleans[i]);
+    }
+
     auto output_entry_float32 = map["F3"][0];
     assert(output_entry_float32.instance_id == 5);
     assert(output_entry_float32.getType() == GBKFCore::ValueType::FLOAT32);
-
     std::vector<float> output_floats32 = output_entry_float32.getValues<float>();
     for (size_t i = 0; i < input_floats32.size(); ++i) {
         assert(std::abs(output_floats32[i] - input_floats32[i]) < 1e-6);

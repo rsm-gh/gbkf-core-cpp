@@ -110,6 +110,11 @@ namespace GBKFCore {
 
     inline KeyedEntry::KeyedEntry(const ValueType type) : m_type(type) {
         switch (type) {
+
+            case ValueType::BOOLEAN:
+                m_values = std::make_shared<std::vector<bool> >();
+                break;
+
             case ValueType::INT8:
                 m_values = std::make_shared<std::vector<int8_t> >();
                 break;
@@ -196,26 +201,40 @@ namespace GBKFCore {
 
     template<typename T>
     ValueType KeyedEntry::deduceValueType() {
-        if constexpr (std::is_same_v<T, int8_t>) {
+
+        if constexpr (std::is_same_v<T, bool>) {
+            return ValueType::BOOLEAN;
+
+        }else if constexpr (std::is_same_v<T, int8_t>) {
             return ValueType::INT8;
+
         } else if constexpr (std::is_same_v<T, int16_t>) {
             return ValueType::INT16;
+
         } else if constexpr (std::is_same_v<T, int32_t>) {
             return ValueType::INT32;
+
         } else if constexpr (std::is_same_v<T, int64_t>) {
             return ValueType::INT64;
+
         } else if constexpr (std::is_same_v<T, uint8_t>) {
             return ValueType::UINT8;
+
         } else if constexpr (std::is_same_v<T, uint16_t>) {
             return ValueType::UINT16;
+
         } else if constexpr (std::is_same_v<T, uint32_t>) {
             return ValueType::UINT32;
+
         } else if constexpr (std::is_same_v<T, uint64_t>) {
             return ValueType::UINT64;
+
         } else if constexpr (std::is_same_v<T, float>) {
             return ValueType::FLOAT32;
+
         } else if constexpr (std::is_same_v<T, double>) {
             return ValueType::FLOAT64;
+
         } else {
             throw std::invalid_argument("Unsupported type");
         }
@@ -271,6 +290,9 @@ namespace GBKFCore {
 
         [[nodiscard]] std::pair<double, uint64_t> readFloat64(uint64_t start_pos) const;
 
+        [[nodiscard]] std::pair<std::vector<bool>, uint64_t> readValuesBool(
+            uint64_t start_pos, uint32_t values_nb, uint8_t last_byte_bools_nb) const;
+
         [[nodiscard]] std::pair<std::vector<int8_t>, uint64_t> readValuesInt8(
             uint64_t start_pos, uint32_t values_nb) const;
 
@@ -319,6 +341,8 @@ namespace GBKFCore {
         void setKeyedValuesNb(uint32_t value = 0);
 
         void setKeyedValuesNbAuto();
+
+        void addKeyedValuesBoolean(const std::string &key, uint32_t instance_id, const std::vector<bool> &values);
 
         void addKeyedValuesInt8(const std::string &key, uint32_t instance_id, const std::vector<int8_t> &values);
 
