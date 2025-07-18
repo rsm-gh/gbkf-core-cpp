@@ -1,4 +1,3 @@
-
 /*
     This file is part of gbkf-core-cpp.
 
@@ -32,14 +31,17 @@ void testHeader() {
 
     std::vector<TestEntry> const tests = {
         {0, 0, 0, 1, 1},
-        {std::numeric_limits<int8_t>::max(), std::numeric_limits<int32_t>::max(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int8_t>::max(), std::numeric_limits<int32_t>::max()},
+        {
+            std::numeric_limits<int8_t>::max(), std::numeric_limits<int32_t>::max(),
+            std::numeric_limits<int16_t>::max(), std::numeric_limits<int8_t>::max(), std::numeric_limits<int32_t>::max()
+        },
         {10, 11, 12, 13, 13},
     };
 
     for (size_t i = 0; i < tests.size(); ++i) {
         std::string file = "test_core_header_" + std::to_string(i) + ".gbkf";
         GBKFCore::Writer writer;
-        writer.setGbkfVersion(tests[i].gbkf_version);
+        writer.setGBKFVersion(tests[i].gbkf_version);
         writer.setSpecificationId(tests[i].spec_id);
         writer.setSpecificationVersion(tests[i].spec_version);
         writer.setKeysLength(tests[i].keys_length);
@@ -47,8 +49,8 @@ void testHeader() {
         writer.write(file, false);
 
         GBKFCore::Reader reader(file);
-        assert(reader.getGbkfVersion() == tests[i].gbkf_version);
-        assert(reader.getSpecificationId() == tests[i].spec_id);
+        assert(reader.getGBKFVersion() == tests[i].gbkf_version);
+        assert(reader.getSpecificationID() == tests[i].spec_id);
         assert(reader.getSpecificationVersion() == tests[i].spec_version);
         assert(reader.getKeysLength() == tests[i].keys_length);
         assert(reader.getKeyedValuesNb() == tests[i].keyed_values_nb);
@@ -63,20 +65,20 @@ void testValues() {
 
     GBKFCore::Writer writer;
     writer.setKeysLength(2);
-    std::vector<uint8_t> input_values_uint8 = {1,2,3,4,5,6,7,8,9,10,255};
-    std::vector<uint16_t> input_values_uint16 = {1,200,300,400,45,600,700,800,900,1000};
-    std::vector<uint32_t> input_values_uint32 = {100,200,1,400,500,600,700,454545,900,1000};
-    std::vector<uint64_t> input_values_uint64 = {100,454545,300,400,500,600,1,800,900,1000};
+    std::vector<uint8_t> input_values_uint8 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 255};
+    std::vector<uint16_t> input_values_uint16 = {1, 200, 300, 400, 45, 600, 700, 800, 900, 1000};
+    std::vector<uint32_t> input_values_uint32 = {100, 200, 1, 400, 500, 600, 700, 454545, 900, 1000};
+    std::vector<uint64_t> input_values_uint64 = {100, 454545, 300, 400, 500, 600, 1, 800, 900, 1000};
     std::vector<float> single_values = {0, .3467846785, 6.5, 110.9, -15000.865};
     std::vector<double> double_values = {0, .3434546785, 1.5, 1000.9, -10000.865};
 
-    writer.addLineUInt8("IP", 1, input_values_uint8);
-    writer.addLineUInt16("IP", 2, input_values_uint16);
-    writer.addLineUInt32("IP", 3, input_values_uint32);
-    writer.addLineUInt64("IP", 4, input_values_uint64);
+    writer.addKeyedValuesUInt8("IP", 1, input_values_uint8);
+    writer.addKeyedValuesUInt16("IP", 2, input_values_uint16);
+    writer.addKeyedValuesUInt32("IP", 3, input_values_uint32);
+    writer.addKeyedValuesUInt64("IP", 4, input_values_uint64);
 
-    writer.addLineFloat32("SS", 5, single_values);
-    writer.addLineFloat64("DD", 1, double_values);
+    writer.addKeyedValuesFloat32("SS", 5, single_values);
+    writer.addKeyedValuesFloat64("DD", 1, double_values);
     writer.write(path, true);
 
     GBKFCore::Reader reader(path);
@@ -123,7 +125,7 @@ int main() {
     try {
         testHeader();
         testValues();
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Test failed: " << e.what() << '\n';
         return 1;
     }
