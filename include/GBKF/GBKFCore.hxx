@@ -61,7 +61,6 @@ namespace GBKFCore {
             constexpr int INSTANCE_ID_LENGTH = 4;
             constexpr int VALUES_NB_LENGTH = 4;
             constexpr int VALUES_TYPE_LENGTH = 1;
-            constexpr int INTEGERS_LENGTH_LENGTH = 1;
         }
     }
 
