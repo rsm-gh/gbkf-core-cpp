@@ -26,11 +26,11 @@
 namespace GBKFCore {
     namespace Constants {
 
-        constexpr size_t SINGLE_LENGTH = 4;
-        constexpr double GBKF_SINGLE_MAX = 3.4028235e+38f;
+        constexpr size_t FLOAT32_LENGTH = 4;
+        constexpr double GBKF_FLOAT32_MAX = 3.4028235e+38f;
 
-        constexpr size_t DOUBLE_LENGTH = 8;
-        constexpr double GBKF_DOUBLE_MAX = 1.7976931348623157e+308;
+        constexpr size_t FLOAT62_LENGTH = 8;
+        constexpr double GBKF_FLOAT62_MAX = 1.7976931348623157e+308;
 
         constexpr int SHA256_LENGTH = 32;
 
@@ -67,19 +67,23 @@ namespace GBKFCore {
     enum class ValueType {
 
         BLOB = 0,
+        BOOLEAN = 1,
 
-        //INT8 =  10,
-        //INT32 = 11,
-        //INT16 = 12,
-        //INT64 = 13,
+        STRING = 12,
+        TEXT = 13,
 
-        UINT8 =  20,
-        UINT16 = 21,
-        UINT32 = 22,
-        UINT64 = 23,
+        INT8 =  20,
+        INT32 = 21,
+        INT16 = 22,
+        INT64 = 23,
 
-        SINGLE = 30,
-        DOUBLE = 35,
+        UINT8 =  30,
+        UINT16 = 31,
+        UINT32 = 33,
+        UINT64 = 34,
+
+        FLOAT32 = 40,
+        FLOAT64 = 41,
     };
 
     class KeyedEntry {
@@ -133,11 +137,11 @@ namespace GBKFCore {
                 m_values = std::make_shared<std::vector<uint64_t>>();
                 break;
 
-            case ValueType::SINGLE:
+            case ValueType::FLOAT32:
                 m_values = std::make_shared<std::vector<float>>();
                 break;
 
-            case ValueType::DOUBLE:
+            case ValueType::FLOAT64:
                 m_values = std::make_shared<std::vector<double>>();
                 break;
 
@@ -196,10 +200,10 @@ namespace GBKFCore {
             return ValueType::UINT64;
 
         }else if constexpr (std::is_same_v<T, float>) {
-            return ValueType::SINGLE;
+            return ValueType::FLOAT32;
 
         }else if constexpr (std::is_same_v<T, double>) {
-            return ValueType::DOUBLE;
+            return ValueType::FLOAT64;
 
         }else {
             throw std::invalid_argument("Unsupported type");
@@ -238,14 +242,14 @@ namespace GBKFCore {
 
         [[nodiscard]] std::pair<uint64_t, uint64_t> readInt(uint64_t start_pos, uint8_t length) const;
         [[nodiscard]] std::pair<std::string, uint64_t> readAscii(uint64_t start_pos, uint8_t length) const;
-        [[nodiscard]] std::pair<float, uint64_t> readSingle(uint64_t start_pos) const;
-        [[nodiscard]] std::pair<double, uint64_t> readDouble(uint64_t start_pos) const;
+        [[nodiscard]] std::pair<float, uint64_t> readFloat32(uint64_t start_pos) const;
+        [[nodiscard]] std::pair<double, uint64_t> readFloat64(uint64_t start_pos) const;
         [[nodiscard]] std::pair<std::vector<uint8_t>, uint64_t> readLineUInt8(uint64_t start_pos, uint32_t values_nb) const;
         [[nodiscard]] std::pair<std::vector<uint16_t>, uint64_t> readLineUInt16(uint64_t start_pos, uint32_t values_nb) const;
         [[nodiscard]] std::pair<std::vector<uint32_t>, uint64_t> readLineUInt32(uint64_t start_pos, uint32_t values_nb) const;
         [[nodiscard]] std::pair<std::vector<uint64_t>, uint64_t> readLineUInt64(uint64_t start_pos, uint32_t values_nb) const;
-        [[nodiscard]] std::pair<std::vector<float>, uint64_t> readLineSingle(uint64_t start_pos, uint32_t values_nb) const;
-        [[nodiscard]] std::pair<std::vector<double>, uint64_t> readLineDouble(uint64_t start_pos, uint32_t values_nb) const;
+        [[nodiscard]] std::pair<std::vector<float>, uint64_t> readLineFloat32(uint64_t start_pos, uint32_t values_nb) const;
+        [[nodiscard]] std::pair<std::vector<double>, uint64_t> readLineFloat64(uint64_t start_pos, uint32_t values_nb) const;
     };
 
     class Writer {
@@ -260,12 +264,12 @@ namespace GBKFCore {
         void setKeyedValuesNb(uint32_t value = 0);
         void setKeyedValuesNbAuto();
 
-        void addLineIntegers(const std::string& key, uint32_t instance_id, const std::vector<uint8_t>& integers);
-        void addLineIntegers(const std::string& key, uint32_t instance_id, const std::vector<uint16_t>& integers);
-        void addLineIntegers(const std::string& key, uint32_t instance_id, const std::vector<uint32_t>& integers);
-        void addLineIntegers(const std::string& key, uint32_t instance_id, const std::vector<uint64_t>& integers);
-        void addLineSingles(const std::string& key, uint32_t instance_id, const std::vector<float>& singles);
-        void addLineDoubles(const std::string& key, uint32_t instance_id, const std::vector<double>& doubles);
+        void addLineUInt8(const std::string& key, uint32_t instance_id, const std::vector<uint8_t>& integers);
+        void addLineUInt16(const std::string& key, uint32_t instance_id, const std::vector<uint16_t>& integers);
+        void addLineUInt32(const std::string& key, uint32_t instance_id, const std::vector<uint32_t>& integers);
+        void addLineUInt64(const std::string& key, uint32_t instance_id, const std::vector<uint64_t>& integers);
+        void addLineFloat32(const std::string& key, uint32_t instance_id, const std::vector<float>& singles);
+        void addLineFloat64(const std::string& key, uint32_t instance_id, const std::vector<double>& doubles);
 
         void write(const std::string& write_path, bool auto_update = true);
 
@@ -278,20 +282,20 @@ namespace GBKFCore {
 
         static std::vector<uint8_t> formatKey(const std::string& key);
 
-        static std::vector<uint8_t> formatInteger(uint16_t value);
+        static std::vector<uint8_t> formatUInt16(uint16_t value);
 
-        static std::vector<uint8_t> formatInteger(uint32_t value);
+        static std::vector<uint8_t> formatUInt32(uint32_t value);
 
-        static std::vector<uint8_t> formatInteger(uint64_t value);
+        static std::vector<uint8_t> formatUInt64(uint64_t value);
 
-        static std::vector<uint8_t> formatSingle(float value);
+        static std::vector<uint8_t> formatFloat32(float value);
 
-        static std::vector<uint8_t> formatDouble(double value);
+        static std::vector<uint8_t> formatFloat64(double value);
 
-        void setInteger(uint8_t  value, uint8_t  min_value, uint64_t start_pos);
-        void setInteger(uint16_t value, uint16_t min_value, uint64_t start_pos);
-        void setInteger(uint32_t value, uint32_t min_value, uint64_t start_pos);
-        void setInteger(uint64_t value, uint64_t min_value, uint64_t start_pos);
+        void setUInt8(uint8_t  value, uint8_t  min_value, uint64_t start_pos);
+        void setUInt16(uint16_t value, uint16_t min_value, uint64_t start_pos);
+        void setUInt32(uint32_t value, uint32_t min_value, uint64_t start_pos);
+        void setUInt64(uint64_t value, uint64_t min_value, uint64_t start_pos);
 
         static std::vector<uint8_t> getKeyedValuesHeader(const std::string& key,
                                                          uint32_t instance_id,

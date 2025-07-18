@@ -70,13 +70,13 @@ void testValues() {
     std::vector<float> single_values = {0, .3467846785, 6.5, 110.9, -15000.865};
     std::vector<double> double_values = {0, .3434546785, 1.5, 1000.9, -10000.865};
 
-    writer.addLineIntegers("IP", 1, input_values_uint8);
-    writer.addLineIntegers("IP", 2, input_values_uint16);
-    writer.addLineIntegers("IP", 3, input_values_uint32);
-    writer.addLineIntegers("IP", 4, input_values_uint64);
+    writer.addLineUInt8("IP", 1, input_values_uint8);
+    writer.addLineUInt16("IP", 2, input_values_uint16);
+    writer.addLineUInt32("IP", 3, input_values_uint32);
+    writer.addLineUInt64("IP", 4, input_values_uint64);
 
-    writer.addLineSingles("SS", 5, single_values);
-    writer.addLineDoubles("DD", 1, double_values);
+    writer.addLineFloat32("SS", 5, single_values);
+    writer.addLineFloat64("DD", 1, double_values);
     writer.write(path, true);
 
     GBKFCore::Reader reader(path);
@@ -104,7 +104,7 @@ void testValues() {
 
     auto ss = map["SS"][0];
     assert(ss.instance_id == 5);
-    assert(ss.getType() == GBKFCore::ValueType::SINGLE);
+    assert(ss.getType() == GBKFCore::ValueType::FLOAT32);
 
     std::vector<float> singles = ss.getValues<float>();
     for (size_t i = 0; i < single_values.size(); ++i) {
@@ -113,7 +113,7 @@ void testValues() {
 
     auto dd = map["DD"][0];
     assert(dd.instance_id == 1);
-    assert(dd.getType() == GBKFCore::ValueType::DOUBLE);
+    assert(dd.getType() == GBKFCore::ValueType::FLOAT64);
     std::vector<double> doubles = dd.getValues<double>();
     for (size_t i = 0; i < double_values.size(); ++i) {
         assert(std::abs(doubles[i] - double_values[i]) < 1e-6);

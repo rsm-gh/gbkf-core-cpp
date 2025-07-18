@@ -146,16 +146,16 @@ std::pair<std::string, uint64_t> Reader::readAscii(const uint64_t start_pos, con
     return {value, start_pos + length};
 }
 
-std::pair<float, uint64_t> Reader::readSingle(const uint64_t start_pos) const {
+std::pair<float, uint64_t> Reader::readFloat32(const uint64_t start_pos) const {
     float value;
-    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::SINGLE_LENGTH);
-    return {value, start_pos + Constants::SINGLE_LENGTH};
+    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT32_LENGTH);
+    return {value, start_pos + Constants::FLOAT32_LENGTH};
 }
 
-std::pair<double, uint64_t> Reader::readDouble(const uint64_t start_pos) const {
+std::pair<double, uint64_t> Reader::readFloat64(const uint64_t start_pos) const {
     double value;
-    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::DOUBLE_LENGTH);
-    return {value, start_pos + Constants::DOUBLE_LENGTH};
+    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT62_LENGTH);
+    return {value, start_pos + Constants::FLOAT62_LENGTH};
 }
 
 std::pair<std::vector<uint8_t>, uint64_t> Reader::readLineUInt8(const uint64_t start_pos, const uint32_t values_nb) const {
@@ -198,20 +198,20 @@ std::pair<std::vector<uint64_t>, uint64_t> Reader::readLineUInt64(const uint64_t
     return {values, pos};
 }
 
-std::pair<std::vector<float>, uint64_t> Reader::readLineSingle(const uint64_t start_pos, const uint32_t values_nb) const {
+std::pair<std::vector<float>, uint64_t> Reader::readLineFloat32(const uint64_t start_pos, const uint32_t values_nb) const {
     std::vector<float> values(values_nb);
     uint64_t pos = start_pos;
     for (uint32_t i = 0; i < values_nb; ++i) {
-        std::tie(values[i], pos) = readSingle(pos);
+        std::tie(values[i], pos) = readFloat32(pos);
     }
     return {values, pos};
 }
 
-std::pair<std::vector<double>, uint64_t> Reader::readLineDouble(const uint64_t start_pos, const uint32_t values_nb) const {
+std::pair<std::vector<double>, uint64_t> Reader::readLineFloat64(const uint64_t start_pos, const uint32_t values_nb) const {
     std::vector<double> values(values_nb);
     uint64_t pos = start_pos;
     for (uint32_t i = 0; i < values_nb; ++i) {
-        std::tie(values[i], pos) = readDouble(pos);
+        std::tie(values[i], pos) = readFloat64(pos);
     }
     return {values, pos};
 }
@@ -262,15 +262,15 @@ std::unordered_map<std::string, std::vector<KeyedEntry>> Reader::getKeyedEntries
                 break;
             }
 
-            case ValueType::SINGLE: {
-                auto [values, new_pos] = readLineSingle(current_pos, values_nb);
+            case ValueType::FLOAT32: {
+                auto [values, new_pos] = readLineFloat32(current_pos, values_nb);
                 keyed_entry.addValues(values);
                 current_pos = new_pos;
                 break;
             }
 
-            case ValueType::DOUBLE: {
-                auto [values, new_pos] = readLineDouble(current_pos, values_nb);
+            case ValueType::FLOAT64: {
+                auto [values, new_pos] = readLineFloat64(current_pos, values_nb);
                 keyed_entry.addValues(values);
                 current_pos = new_pos;
                 break;
@@ -311,15 +311,15 @@ void Writer::reset() {
 }
 
 void Writer::setGbkfVersion(const uint8_t value) {
-    setInteger(value, 0, Constants::Header::GBKF_VERSION_START);
+    setUInt8(value, 0, Constants::Header::GBKF_VERSION_START);
 }
 
 void Writer::setSpecificationId(const uint32_t value) {
-    setInteger(value, 0, Constants::Header::SPECIFICATION_ID_START);
+    setUInt32(value, 0, Constants::Header::SPECIFICATION_ID_START);
 }
 
 void Writer::setSpecificationVersion(const uint16_t value) {
-    setInteger(value, 0, Constants::Header::SPECIFICATION_VERSION_START);
+    setUInt16(value, 0, Constants::Header::SPECIFICATION_VERSION_START);
 }
 
 void Writer::setKeysLength(const uint8_t value) {
@@ -328,21 +328,21 @@ void Writer::setKeysLength(const uint8_t value) {
             throw std::invalid_argument("Key length mismatch");
         };
     }
-    setInteger(value, 1, Constants::Header::KEYS_LENGTH_START);
+    setUInt8(value, 1, Constants::Header::KEYS_LENGTH_START);
     m_keys_length = value;
 }
 
 void Writer::setKeyedValuesNb(const uint32_t value) {
-    setInteger(value, 0, Constants::Header::KEYED_VALUES_NB_START);
+    setUInt32(value, 0, Constants::Header::KEYED_VALUES_NB_START);
 }
 
 void Writer::setKeyedValuesNbAuto() {
     setKeyedValuesNb(m_keyed_values_nb);
 }
 
-void Writer::addLineIntegers(const std::string& key,
-                             const uint32_t instance_id,
-                             const std::vector<uint8_t>& integers) {
+void Writer::addLineUInt8(const std::string& key,
+                         const uint32_t instance_id,
+                         const std::vector<uint8_t>& integers) {
 
     // Set the header
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::UINT8);
@@ -362,9 +362,9 @@ void Writer::addLineIntegers(const std::string& key,
     }
 }
 
-void Writer::addLineIntegers(const std::string& key,
-                             const uint32_t instance_id,
-                             const std::vector<uint16_t>& integers) {
+void Writer::addLineUInt16(const std::string& key,
+                           const uint32_t instance_id,
+                           const std::vector<uint16_t>& integers) {
 
     // Set the header
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::UINT16);
@@ -374,7 +374,7 @@ void Writer::addLineIntegers(const std::string& key,
 
     // Set the values
     for (const auto integer : integers) {
-        auto integer_bytes = formatInteger(integer);
+        auto integer_bytes = formatUInt16(integer);
         line_bytes.insert(line_bytes.end(), integer_bytes.begin(), integer_bytes.end());
     }
 
@@ -387,9 +387,9 @@ void Writer::addLineIntegers(const std::string& key,
     }
 }
 
-void Writer::addLineIntegers(const std::string& key,
-                             const uint32_t instance_id,
-                             const std::vector<uint32_t>& integers) {
+void Writer::addLineUInt32(const std::string& key,
+                           const uint32_t instance_id,
+                           const std::vector<uint32_t>& integers) {
 
     // Set the header
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::UINT32);
@@ -399,7 +399,7 @@ void Writer::addLineIntegers(const std::string& key,
 
     // Set the values
     for (const auto integer : integers) {
-        auto integer_bytes = formatInteger(integer);
+        auto integer_bytes = formatUInt32(integer);
         line_bytes.insert(line_bytes.end(), integer_bytes.begin(), integer_bytes.end());
     }
 
@@ -412,9 +412,9 @@ void Writer::addLineIntegers(const std::string& key,
     }
 }
 
-void Writer::addLineIntegers(const std::string& key,
-                             const uint32_t instance_id,
-                             const std::vector<uint64_t>& integers) {
+void Writer::addLineUInt64(const std::string& key,
+                           const uint32_t instance_id,
+                           const std::vector<uint64_t>& integers) {
 
     // Set the header
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, integers.size(), ValueType::UINT64);
@@ -424,7 +424,7 @@ void Writer::addLineIntegers(const std::string& key,
 
     // Set the values
     for (const auto integer : integers) {
-        auto integer_bytes = formatInteger(integer);
+        auto integer_bytes = formatUInt64(integer);
         line_bytes.insert(line_bytes.end(), integer_bytes.begin(), integer_bytes.end());
     }
 
@@ -437,14 +437,14 @@ void Writer::addLineIntegers(const std::string& key,
     }
 }
 
-void Writer::addLineSingles(const std::string& key,
+void Writer::addLineFloat32(const std::string& key,
                             const uint32_t instance_id,
                             const std::vector<float>& floats) {
 
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, floats.size(), ValueType::SINGLE);
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, floats.size(), ValueType::FLOAT32);
 
     for (auto f : floats) {
-        auto d_bytes = formatSingle(f);
+        auto d_bytes = formatFloat32(f);
         line_bytes.insert(line_bytes.end(), d_bytes.begin(), d_bytes.end());
     }
 
@@ -453,14 +453,14 @@ void Writer::addLineSingles(const std::string& key,
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) m_keys.push_back(key);
                             }
 
-void Writer::addLineDoubles(const std::string& key,
+void Writer::addLineFloat64(const std::string& key,
                             const uint32_t instance_id,
                             const std::vector<double>& doubles) {
 
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, doubles.size(), ValueType::DOUBLE);
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, doubles.size(), ValueType::FLOAT64);
 
     for (auto d : doubles) {
-        auto d_bytes = formatDouble(d);
+        auto d_bytes = formatFloat64(d);
         line_bytes.insert(line_bytes.end(), d_bytes.begin(), d_bytes.end());
     }
 
@@ -493,7 +493,7 @@ std::vector<uint8_t> Writer::formatKey(const std::string& key) {
     return {key.begin(), key.end()};
 }
 
-std::vector<uint8_t> Writer::formatInteger(uint16_t value) {
+std::vector<uint8_t> Writer::formatUInt16(uint16_t value) {
     std::vector<uint8_t> out(2);
     for (int i = 1; i >= 0; --i) {
         out[i] = static_cast<uint8_t>(value & 0xFF);
@@ -502,7 +502,7 @@ std::vector<uint8_t> Writer::formatInteger(uint16_t value) {
     return out;
 }
 
-std::vector<uint8_t> Writer::formatInteger(uint32_t value) {
+std::vector<uint8_t> Writer::formatUInt32(uint32_t value) {
     std::vector<uint8_t> out(4);
     for (int i = 3; i >= 0; --i) {
         out[i] = static_cast<uint8_t>(value & 0xFF);
@@ -511,7 +511,7 @@ std::vector<uint8_t> Writer::formatInteger(uint32_t value) {
     return out;
 }
 
-std::vector<uint8_t> Writer::formatInteger(uint64_t value) {
+std::vector<uint8_t> Writer::formatUInt64(uint64_t value) {
     std::vector<uint8_t> out(8);
     for (int i = 7; i >= 0; --i) {
         out[i] = value & 0xFF;
@@ -521,30 +521,30 @@ std::vector<uint8_t> Writer::formatInteger(uint64_t value) {
 }
 
 
-std::vector<uint8_t> Writer::formatSingle(const float value) {
+std::vector<uint8_t> Writer::formatFloat32(const float value) {
 
-    if (value > Constants::GBKF_SINGLE_MAX) {
-        throw std::invalid_argument("Single too large");
+    if (value > Constants::GBKF_FLOAT32_MAX) {
+        throw std::invalid_argument("Float32 too large");
     }
 
-    std::vector<uint8_t> out(Constants::SINGLE_LENGTH);
-    std::memcpy(out.data(), &value, Constants::SINGLE_LENGTH);
+    std::vector<uint8_t> out(Constants::FLOAT32_LENGTH);
+    std::memcpy(out.data(), &value, Constants::FLOAT32_LENGTH);
     return out;
 }
 
 
-std::vector<uint8_t> Writer::formatDouble(const double value) {
+std::vector<uint8_t> Writer::formatFloat64(const double value) {
 
-    if (value > Constants::GBKF_DOUBLE_MAX) {
-        throw std::invalid_argument("Double too large");
+    if (value > Constants::GBKF_FLOAT62_MAX) {
+        throw std::invalid_argument("Float64 too large");
     }
 
-    std::vector<uint8_t> out(Constants::DOUBLE_LENGTH);
-    std::memcpy(out.data(), &value, Constants::DOUBLE_LENGTH);
+    std::vector<uint8_t> out(Constants::FLOAT62_LENGTH);
+    std::memcpy(out.data(), &value, Constants::FLOAT62_LENGTH);
     return out;
 }
 
-void Writer::setInteger(const uint8_t value,
+void Writer::setUInt8(const uint8_t value,
                         const uint8_t min_value,
                         const uint64_t start_pos) {
 
@@ -556,7 +556,7 @@ void Writer::setInteger(const uint8_t value,
     std::copy(bytes.begin(), bytes.end(), m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
 }
 
-void Writer::setInteger(const uint16_t value,
+void Writer::setUInt16(const uint16_t value,
                         const uint16_t min_value,
                         const uint64_t start_pos) {
 
@@ -564,11 +564,11 @@ void Writer::setInteger(const uint16_t value,
         throw std::invalid_argument("Value out of range");
     }
 
-    auto bytes = formatInteger(value);
+    auto bytes = formatUInt16(value);
     std::copy(bytes.begin(), bytes.end(), m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
 }
 
-void Writer::setInteger(const uint32_t value,
+void Writer::setUInt32(const uint32_t value,
                         const uint32_t min_value,
                         const uint64_t start_pos) {
 
@@ -576,11 +576,11 @@ void Writer::setInteger(const uint32_t value,
         throw std::invalid_argument("Value out of range");
     }
 
-    auto bytes = formatInteger(value);
+    auto bytes = formatUInt32(value);
     std::copy(bytes.begin(), bytes.end(), m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
 }
 
-void Writer::setInteger(const uint64_t value,
+void Writer::setUInt64(const uint64_t value,
                         const uint64_t min_value,
                         const uint64_t start_pos) {
 
@@ -588,7 +588,7 @@ void Writer::setInteger(const uint64_t value,
         throw std::invalid_argument("Value out of range");
     }
 
-    auto bytes = formatInteger(value);
+    auto bytes = formatUInt64(value);
     std::copy(bytes.begin(), bytes.end(), m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
 }
 
@@ -602,10 +602,10 @@ std::vector<uint8_t> Writer::getKeyedValuesHeader(const std::string& key,
     std::vector<uint8_t> key_bytes = formatKey(key);
     line_bytes.insert(line_bytes.end(), key_bytes.begin(), key_bytes.end());
 
-    std::vector<uint8_t> id_bytes = formatInteger(instance_id);
+    std::vector<uint8_t> id_bytes = formatUInt32(instance_id);
     line_bytes.insert(line_bytes.end(), id_bytes.begin(), id_bytes.end());
 
-    std::vector<uint8_t> count_bytes = formatInteger(values_nb);
+    std::vector<uint8_t> count_bytes = formatUInt32(values_nb);
     line_bytes.insert(line_bytes.end(), count_bytes.begin(), count_bytes.end());
 
     line_bytes.push_back(static_cast<uint8_t>(value_type));
