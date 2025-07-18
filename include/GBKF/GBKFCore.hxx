@@ -54,12 +54,6 @@ namespace GBKFCore {
 
             constexpr int LENGTH = KEYED_VALUES_NB_START + KEYED_VALUES_NB_LENGTH;
         }
-
-        namespace KeyedEntry {
-            constexpr int INSTANCE_ID_LENGTH = 4;
-            constexpr int VALUES_NB_LENGTH = 4;
-            constexpr int VALUES_TYPE_LENGTH = 1;
-        }
     }
 
     enum class ValueType {
@@ -239,7 +233,13 @@ namespace GBKFCore {
 
         void readHeader();
 
-        [[nodiscard]] std::pair<uint64_t, uint64_t> readInt(uint64_t start_pos, uint8_t length) const;
+        [[nodiscard]] std::pair<uint8_t, uint64_t> readUInt8(uint64_t start_pos) const;
+
+        [[nodiscard]] std::pair<uint16_t, uint64_t> readUInt16(uint64_t start_pos) const;
+
+        [[nodiscard]] std::pair<uint32_t, uint64_t> readUInt32(uint64_t start_pos) const;
+
+        [[nodiscard]] std::pair<uint64_t, uint64_t> readUInt64(uint64_t start_pos) const;
 
         [[nodiscard]] std::pair<std::string, uint64_t> readAscii(uint64_t start_pos, uint8_t length) const;
 

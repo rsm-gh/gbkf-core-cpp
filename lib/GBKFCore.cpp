@@ -100,13 +100,13 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > Reader::getKeyedEntrie
 
     for (uint32_t i = 0; i < m_keyed_values_nb; ++i) {
         auto [key, p1] = readAscii(current_pos, m_keys_length);
-        auto [instance_id, p2] = readInt(p1, Constants::KeyedEntry::INSTANCE_ID_LENGTH);
-        auto [values_nb, p3] = readInt(p2, Constants::KeyedEntry::VALUES_NB_LENGTH);
-        auto [values_type, p4] = readInt(p3, Constants::KeyedEntry::VALUES_TYPE_LENGTH);
+        auto [instance_id, p2] = readUInt32(p1);
+        auto [values_nb, p3] = readUInt32(p2);
+        auto [values_type, p4] = readUInt8(p3);
         current_pos = p4;
 
         KeyedEntry keyed_entry(static_cast<ValueType>(values_type));
-        keyed_entry.instance_id = static_cast<uint32_t>(instance_id);
+        keyed_entry.instance_id = instance_id;
 
         switch (keyed_entry.getType()) {
             case ValueType::UINT8: {
@@ -190,22 +190,37 @@ void Reader::readHeader() {
         throw std::invalid_argument("Invalid start keyword");
     }
 
-    m_gbkf_version = readInt(Constants::Header::GBKF_VERSION_START, Constants::Header::GBKF_VERSION_LENGTH).first;
-    m_specification_id = readInt(Constants::Header::SPECIFICATION_ID_START, Constants::Header::SPECIFICATION_LENGTH).
-            first;
-    m_specification_version = readInt(Constants::Header::SPECIFICATION_VERSION_START,
-                                      Constants::Header::SPECIFICATION_VERSION_LENGTH).first;
-    m_keys_length = readInt(Constants::Header::KEYS_LENGTH_START, Constants::Header::KEYS_LENGTH_LENGTH).first;
-    m_keyed_values_nb = readInt(Constants::Header::KEYED_VALUES_NB_START, Constants::Header::KEYED_VALUES_NB_LENGTH).
-            first;
+    m_gbkf_version = readUInt8(Constants::Header::GBKF_VERSION_START).first;
+    m_specification_id = readUInt32(Constants::Header::SPECIFICATION_ID_START).first;
+    m_specification_version = readUInt16(Constants::Header::SPECIFICATION_VERSION_START).first;
+    m_keys_length = readUInt8(Constants::Header::KEYS_LENGTH_START).first;
+    m_keyed_values_nb = readUInt32(Constants::Header::KEYED_VALUES_NB_START).first;
 }
 
-std::pair<uint64_t, uint64_t> Reader::readInt(const uint64_t start_pos, const uint8_t length) const {
+std::pair<uint8_t, uint64_t> Reader::readUInt8(const uint64_t start_pos) const {
+    return {m_bytes_data[start_pos], start_pos + 1};
+}
+
+std::pair<uint16_t, uint64_t> Reader::readUInt16(const uint64_t start_pos) const {
+    uint16_t value = (static_cast<uint16_t>(m_bytes_data[start_pos]) << 8) |
+                     static_cast<uint16_t>(m_bytes_data[start_pos + 1]);
+    return {value, start_pos + 2};
+}
+
+std::pair<uint32_t, uint64_t> Reader::readUInt32(const uint64_t start_pos) const {
+    uint32_t value = (static_cast<uint32_t>(m_bytes_data[start_pos]) << 24) |
+                     (static_cast<uint32_t>(m_bytes_data[start_pos + 1]) << 16) |
+                     (static_cast<uint32_t>(m_bytes_data[start_pos + 2]) << 8) |
+                     static_cast<uint32_t>(m_bytes_data[start_pos + 3]);
+    return {value, start_pos + 4};
+}
+
+std::pair<uint64_t, uint64_t> Reader::readUInt64(const uint64_t start_pos) const {
     uint64_t value = 0;
-    for (int i = 0; i < length; ++i) {
-        value = (value << 8) | m_bytes_data[start_pos + i];
+    for (int i = 0; i < 8; ++i) {
+        value = (value << 8) | static_cast<uint64_t>(m_bytes_data[start_pos + i]);
     }
-    return {value, start_pos + length};
+    return {value, start_pos + 8};
 }
 
 std::pair<std::string, uint64_t> Reader::readAscii(const uint64_t start_pos, const uint8_t length) const {
@@ -231,37 +246,40 @@ std::pair<double, uint64_t> Reader::readFloat64(const uint64_t start_pos) const 
 std::pair<std::vector<uint8_t>, uint64_t> Reader::readValuesUInt8(uint64_t start_pos, const uint32_t values_nb) const {
     std::vector<uint8_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
-        std::tie(values[i], start_pos) = readInt(start_pos, 1);
+        std::tie(values[i], start_pos) = readUInt8(start_pos);
     }
     return {values, start_pos};
 }
 
-std::pair<std::vector<uint16_t>, uint64_t> Reader::readValuesUInt16(uint64_t start_pos, const uint32_t values_nb) const {
+std::pair<std::vector<uint16_t>, uint64_t>
+Reader::readValuesUInt16(uint64_t start_pos, const uint32_t values_nb) const {
     std::vector<uint16_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
-        std::tie(values[i], start_pos) = readInt(start_pos, 2);
+        std::tie(values[i], start_pos) = readUInt16(start_pos);
     }
     return {values, start_pos};
 }
 
-std::pair<std::vector<uint32_t>, uint64_t> Reader::readValuesUInt32(uint64_t start_pos, const uint32_t values_nb) const {
+std::pair<std::vector<uint32_t>, uint64_t>
+Reader::readValuesUInt32(uint64_t start_pos, const uint32_t values_nb) const {
     std::vector<uint32_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
-        std::tie(values[i], start_pos) = readInt(start_pos, 4);
+        std::tie(values[i], start_pos) = readUInt32(start_pos);
     }
     return {values, start_pos};
 }
 
-std::pair<std::vector<uint64_t>, uint64_t> Reader::readValuesUInt64(uint64_t start_pos, const uint32_t values_nb) const {
+std::pair<std::vector<uint64_t>, uint64_t>
+Reader::readValuesUInt64(uint64_t start_pos, const uint32_t values_nb) const {
     std::vector<uint64_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
-        std::tie(values[i], start_pos) = readInt(start_pos, 8);
+        std::tie(values[i], start_pos) = readUInt64(start_pos);
     }
     return {values, start_pos};
 }
 
 std::pair<std::vector<float>, uint64_t> Reader::readValuesFloat32(const uint64_t start_pos,
-                                                                const uint32_t values_nb) const {
+                                                                  const uint32_t values_nb) const {
     std::vector<float> values(values_nb);
     uint64_t pos = start_pos;
     for (uint32_t i = 0; i < values_nb; ++i) {
@@ -271,7 +289,7 @@ std::pair<std::vector<float>, uint64_t> Reader::readValuesFloat32(const uint64_t
 }
 
 std::pair<std::vector<double>, uint64_t> Reader::readValuesFloat64(const uint64_t start_pos,
-                                                                 const uint32_t values_nb) const {
+                                                                   const uint32_t values_nb) const {
     std::vector<double> values(values_nb);
     uint64_t pos = start_pos;
     for (uint32_t i = 0; i < values_nb; ++i) {
@@ -581,4 +599,3 @@ void Writer::setUInt64(const uint64_t value,
     std::copy(bytes.begin(), bytes.end(),
               m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
 }
-
