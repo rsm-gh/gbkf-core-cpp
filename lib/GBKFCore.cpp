@@ -109,6 +109,34 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > Reader::getKeyedEntrie
         keyed_entry.instance_id = instance_id;
 
         switch (keyed_entry.getType()) {
+            case ValueType::INT8: {
+                auto [values, new_pos] = readValuesInt8(current_pos, values_nb);
+                keyed_entry.addValues(values);
+                current_pos = new_pos;
+                break;
+            }
+
+            case ValueType::INT16: {
+                auto [values, new_pos] = readValuesInt16(current_pos, values_nb);
+                keyed_entry.addValues(values);
+                current_pos = new_pos;
+                break;
+            }
+
+            case ValueType::INT32: {
+                auto [values, new_pos] = readValuesInt32(current_pos, values_nb);
+                keyed_entry.addValues(values);
+                current_pos = new_pos;
+                break;
+            }
+
+            case ValueType::INT64: {
+                auto [values, new_pos] = readValuesInt64(current_pos, values_nb);
+                keyed_entry.addValues(values);
+                current_pos = new_pos;
+                break;
+            }
+
             case ValueType::UINT8: {
                 auto [values, new_pos] = readValuesUInt8(current_pos, values_nb);
                 keyed_entry.addValues(values);
@@ -243,6 +271,46 @@ std::pair<double, uint64_t> Reader::readFloat64(const uint64_t start_pos) const 
     return {value, start_pos + Constants::FLOAT62_LENGTH};
 }
 
+std::pair<std::vector<int8_t>, uint64_t> Reader::readValuesInt8(uint64_t start_pos, const uint32_t values_nb) const {
+    std::vector<int8_t> values(values_nb);
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        auto [value, new_pos] = readUInt8(start_pos);
+        values[i] = static_cast<int8_t>(value);
+        start_pos = new_pos;
+    }
+    return {values, start_pos};
+}
+
+std::pair<std::vector<int16_t>, uint64_t> Reader::readValuesInt16(uint64_t start_pos, const uint32_t values_nb) const {
+    std::vector<int16_t> values(values_nb);
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        auto [value, new_pos] = readUInt16(start_pos);
+        values[i] = static_cast<int16_t>(value);
+        start_pos = new_pos;
+    }
+    return {values, start_pos};
+}
+
+std::pair<std::vector<int32_t>, uint64_t> Reader::readValuesInt32(uint64_t start_pos, const uint32_t values_nb) const {
+    std::vector<int32_t> values(values_nb);
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        auto [value, new_pos] = readUInt32(start_pos);
+        values[i] = static_cast<int32_t>(value);
+        start_pos = new_pos;
+    }
+    return {values, start_pos};
+}
+
+std::pair<std::vector<int64_t>, uint64_t> Reader::readValuesInt64(uint64_t start_pos, const uint32_t values_nb) const {
+    std::vector<int64_t> values(values_nb);
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        auto [value, new_pos] = readUInt64(start_pos);
+        values[i] = static_cast<int64_t>(value);
+        start_pos = new_pos;
+    }
+    return {values, start_pos};
+}
+
 std::pair<std::vector<uint8_t>, uint64_t> Reader::readValuesUInt8(uint64_t start_pos, const uint32_t values_nb) const {
     std::vector<uint8_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
@@ -347,6 +415,89 @@ void Writer::setKeyedValuesNbAuto() {
     setKeyedValuesNb(m_keyed_values_nb);
 }
 
+void Writer::addKeyedValuesInt8(const std::string &key,
+                                const uint32_t instance_id,
+                                const std::vector<int8_t> &values) {
+    // Set the header
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::INT8);
+
+    // Set the values
+    for (const auto value: values) {
+        line_bytes.push_back(static_cast<uint8_t>(value));
+    }
+
+    // Add to the buffer
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
+}
+
+void Writer::addKeyedValuesInt16(const std::string &key,
+                                 const uint32_t instance_id,
+                                 const std::vector<int16_t> &values) {
+    // Set the header
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::INT16);
+
+    // Set the values
+    for (const auto value: values) {
+        auto value_bytes = formatUInt16(static_cast<uint16_t>(value));
+        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
+    }
+
+    // Add to the buffer
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
+}
+
+void Writer::addKeyedValuesInt32(const std::string &key,
+                                 const uint32_t instance_id,
+                                 const std::vector<int32_t> &values) {
+    // Set the header
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::INT32);
+
+    // Set the values
+    for (const auto value: values) {
+        auto value_bytes = formatUInt32(static_cast<uint32_t>(value));
+        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
+    }
+
+    // Add to the buffer
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
+}
+
+void Writer::addKeyedValuesInt64(const std::string &key,
+                                 const uint32_t instance_id,
+                                 const std::vector<int64_t> &values) {
+    // Set the header
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::INT64);
+
+    // Set the values
+    for (const auto value: values) {
+        auto value_bytes = formatUInt64(static_cast<uint64_t>(value));
+        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
+    }
+
+    // Add to the buffer
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
+}
+
 void Writer::addKeyedValuesUInt8(const std::string &key,
                                  const uint32_t instance_id,
                                  const std::vector<uint8_t> &values) {
@@ -372,9 +523,9 @@ void Writer::addKeyedValuesUInt16(const std::string &key,
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::UINT16);
 
     // Set the values
-    for (const auto integer: values) {
-        auto integer_bytes = formatUInt16(integer);
-        line_bytes.insert(line_bytes.end(), integer_bytes.begin(), integer_bytes.end());
+    for (const auto value: values) {
+        auto value_bytes = formatUInt16(value);
+        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
     }
 
     // Add to the buffer
@@ -393,9 +544,9 @@ void Writer::addKeyedValuesUInt32(const std::string &key,
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::UINT32);
 
     // Set the values
-    for (const auto integer: values) {
-        auto integer_bytes = formatUInt32(integer);
-        line_bytes.insert(line_bytes.end(), integer_bytes.begin(), integer_bytes.end());
+    for (const auto value: values) {
+        auto value_bytes = formatUInt32(value);
+        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
     }
 
     // Add to the buffer
@@ -414,9 +565,9 @@ void Writer::addKeyedValuesUInt64(const std::string &key,
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::UINT64);
 
     // Set the values
-    for (const auto integer: values) {
-        auto integer_bytes = formatUInt64(integer);
-        line_bytes.insert(line_bytes.end(), integer_bytes.begin(), integer_bytes.end());
+    for (const auto value: values) {
+        auto value_bytes = formatUInt64(value);
+        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
     }
 
     // Add to the buffer
@@ -433,9 +584,9 @@ void Writer::addKeyedValuesFloat32(const std::string &key,
                                    const std::vector<float> &values) {
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::FLOAT32);
 
-    for (auto f: values) {
-        auto d_bytes = formatFloat32(f);
-        line_bytes.insert(line_bytes.end(), d_bytes.begin(), d_bytes.end());
+    for (const auto value: values) {
+        auto value_bytes = formatFloat32(value);
+        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
     }
 
     m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
@@ -448,9 +599,9 @@ void Writer::addKeyedValuesFloat64(const std::string &key,
                                    const std::vector<double> &values) {
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::FLOAT64);
 
-    for (auto d: values) {
-        auto d_bytes = formatFloat64(d);
-        line_bytes.insert(line_bytes.end(), d_bytes.begin(), d_bytes.end());
+    for (const auto value: values) {
+        auto value_bytes = formatFloat64(value);
+        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
     }
 
     m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());

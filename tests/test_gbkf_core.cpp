@@ -65,56 +65,85 @@ void testValues() {
 
     GBKFCore::Writer writer;
     writer.setKeysLength(2);
+
     std::vector<uint8_t> input_values_uint8 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 255};
     std::vector<uint16_t> input_values_uint16 = {1, 200, 300, 400, 45, 600, 700, 800, 900, 1000};
     std::vector<uint32_t> input_values_uint32 = {100, 200, 1, 400, 500, 600, 700, 454545, 900, 1000};
     std::vector<uint64_t> input_values_uint64 = {100, 454545, 300, 400, 500, 600, 1, 800, 900, 1000};
-    std::vector<float> single_values = {0, .3467846785, 6.5, 110.9, -15000.865};
-    std::vector<double> double_values = {0, .3434546785, 1.5, 1000.9, -10000.865};
 
-    writer.addKeyedValuesUInt8("IP", 1, input_values_uint8);
-    writer.addKeyedValuesUInt16("IP", 2, input_values_uint16);
-    writer.addKeyedValuesUInt32("IP", 3, input_values_uint32);
-    writer.addKeyedValuesUInt64("IP", 4, input_values_uint64);
+    std::vector<int8_t> input_values_int8 = {-1, 2, 3, 4, -5, 6, 7, 8, 9, 10, 100};
+    std::vector<int16_t> input_values_int16 = {1, 200, -300, 400, 45, -600, 700, 800, 900, 1000};
+    std::vector<int32_t> input_values_int32 = {100, 200, 1, 400, 500, -600, 700, 454545, -900, 1000};
+    std::vector<int64_t> input_values_int64 = {100, -454545, 300, 400, 500, 600, 1, 800, -900, 1000};
 
-    writer.addKeyedValuesFloat32("SS", 5, single_values);
-    writer.addKeyedValuesFloat64("DD", 1, double_values);
+    std::vector<float> input_floats32 = {0, .3467846785, 6.5, 110.9, -15000.865};
+    std::vector<double> input_floats64 = {0, .3434546785, 1.5, 1000.9, -10000.865};
+
+    writer.addKeyedValuesUInt8("UI", 1, input_values_uint8);
+    writer.addKeyedValuesUInt16("UI", 2, input_values_uint16);
+    writer.addKeyedValuesUInt32("UI", 3, input_values_uint32);
+    writer.addKeyedValuesUInt64("UI", 4, input_values_uint64);
+
+    writer.addKeyedValuesInt8("SI", 1, input_values_int8);
+    writer.addKeyedValuesInt16("SI", 2, input_values_int16);
+    writer.addKeyedValuesInt32("SI", 3, input_values_int32);
+    writer.addKeyedValuesInt64("SI", 4, input_values_int64);
+
+    writer.addKeyedValuesFloat32("F3", 5, input_floats32);
+    writer.addKeyedValuesFloat64("F6", 1, input_floats64);
+
     writer.write(path, true);
 
     GBKFCore::Reader reader(path);
     auto map = reader.getKeyedEntries();
 
-    auto output_entry_uint8 = map["IP"][0];
+    auto output_entry_uint8 = map["UI"][0];
     assert(output_entry_uint8.instance_id == 1);
     assert(output_entry_uint8.getValues<uint8_t>(GBKFCore::ValueType::UINT8) == input_values_uint8);
 
-    auto output_entry_uint16 = map["IP"][1];
+    auto output_entry_uint16 = map["UI"][1];
     assert(output_entry_uint16.instance_id == 2);
     assert(output_entry_uint16.getValues<uint16_t>(GBKFCore::ValueType::UINT16) == input_values_uint16);
 
-    auto output_entry_uint32 = map["IP"][2];
+    auto output_entry_uint32 = map["UI"][2];
     assert(output_entry_uint32.instance_id == 3);
     assert(output_entry_uint32.getValues<uint32_t>(GBKFCore::ValueType::UINT32) == input_values_uint32);
 
-    auto output_entry_uint64 = map["IP"][3];
+    auto output_entry_uint64 = map["UI"][3];
     assert(output_entry_uint64.instance_id == 4);
     assert(output_entry_uint64.getValues<uint64_t>(GBKFCore::ValueType::UINT64) == input_values_uint64);
 
-    auto ss = map["SS"][0];
-    assert(ss.instance_id == 5);
-    assert(ss.getType() == GBKFCore::ValueType::FLOAT32);
+    auto output_entry_int8 = map["SI"][0];
+    assert(output_entry_int8.instance_id == 1);
+    assert(output_entry_int8.getValues<int8_t>(GBKFCore::ValueType::INT8) == input_values_int8);
 
-    std::vector<float> singles = ss.getValues<float>();
-    for (size_t i = 0; i < single_values.size(); ++i) {
-        assert(std::abs(singles[i] - single_values[i]) < 1e-6);
+    auto output_entry_int16 = map["SI"][1];
+    assert(output_entry_int16.instance_id == 2);
+    assert(output_entry_int16.getValues<int16_t>(GBKFCore::ValueType::INT16) == input_values_int16);
+
+    auto output_entry_int32 = map["SI"][2];
+    assert(output_entry_int32.instance_id == 3);
+    assert(output_entry_int32.getValues<int32_t>(GBKFCore::ValueType::INT32) == input_values_int32);
+
+    auto output_entry_int64 = map["SI"][3];
+    assert(output_entry_int64.instance_id == 4);
+    assert(output_entry_int64.getValues<int64_t>(GBKFCore::ValueType::INT64) == input_values_int64);
+
+    auto output_entry_float32 = map["F3"][0];
+    assert(output_entry_float32.instance_id == 5);
+    assert(output_entry_float32.getType() == GBKFCore::ValueType::FLOAT32);
+
+    std::vector<float> output_floats32 = output_entry_float32.getValues<float>();
+    for (size_t i = 0; i < input_floats32.size(); ++i) {
+        assert(std::abs(output_floats32[i] - input_floats32[i]) < 1e-6);
     }
 
-    auto dd = map["DD"][0];
-    assert(dd.instance_id == 1);
-    assert(dd.getType() == GBKFCore::ValueType::FLOAT64);
-    std::vector<double> doubles = dd.getValues<double>();
-    for (size_t i = 0; i < double_values.size(); ++i) {
-        assert(std::abs(doubles[i] - double_values[i]) < 1e-6);
+    auto output_entry_float64 = map["F6"][0];
+    assert(output_entry_float64.instance_id == 1);
+    assert(output_entry_float64.getType() == GBKFCore::ValueType::FLOAT64);
+    std::vector<double> output_floats64 = output_entry_float64.getValues<double>();
+    for (size_t i = 0; i < input_floats64.size(); ++i) {
+        assert(std::abs(output_floats64[i] - input_floats64[i]) < 1e-6);
     }
 
     assert(reader.verifiesSha());
