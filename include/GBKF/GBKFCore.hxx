@@ -20,6 +20,7 @@
 #include <string>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -105,7 +106,7 @@ namespace GBKFCore {
         [[nodiscard]] ValueType getType() const;
 
         template <typename T>
-        [[nodiscard]] std::vector<T>& getValues();
+        [[nodiscard]] std::vector<T>& getValues(std::optional<ValueType> expected_type = std::nullopt);
 
     private:
         ValueType m_type;
@@ -172,7 +173,12 @@ namespace GBKFCore {
     }
 
     template <typename T>
-    std::vector<T>& KeyedEntry::getValues() {
+    std::vector<T>& KeyedEntry::getValues(const std::optional<ValueType> expected_type) {
+
+        if (expected_type && *expected_type != m_type) {
+            throw std::runtime_error("Explicit type mismatch in getValues");
+        }
+
         ensureType<T>();
         return *static_cast<std::vector<T>*>(m_values.get());
     }

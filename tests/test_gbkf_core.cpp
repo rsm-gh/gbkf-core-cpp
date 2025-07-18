@@ -84,23 +84,19 @@ void testValues() {
 
     auto output_entry_uint8 = map["IP"][0];
     assert(output_entry_uint8.instance_id == 1);
-    assert(output_entry_uint8.getType() == GBKFCore::ValueType::UINT8);
-    assert(output_entry_uint8.getValues<uint8_t>() == input_values_uint8);
+    assert(output_entry_uint8.getValues<uint8_t>(GBKFCore::ValueType::UINT8) == input_values_uint8);
 
     auto output_entry_uint16 = map["IP"][1];
     assert(output_entry_uint16.instance_id == 2);
-    assert(output_entry_uint16.getType() == GBKFCore::ValueType::UINT16);
-    assert(output_entry_uint16.getValues<uint16_t>() == input_values_uint16);
+    assert(output_entry_uint16.getValues<uint16_t>(GBKFCore::ValueType::UINT16) == input_values_uint16);
 
     auto output_entry_uint32 = map["IP"][2];
     assert(output_entry_uint32.instance_id == 3);
-    assert(output_entry_uint32.getType() == GBKFCore::ValueType::UINT32);
-    assert(output_entry_uint32.getValues<uint32_t>() == input_values_uint32);
+    assert(output_entry_uint32.getValues<uint32_t>(GBKFCore::ValueType::UINT32) == input_values_uint32);
 
     auto output_entry_uint64 = map["IP"][3];
     assert(output_entry_uint64.instance_id == 4);
-    assert(output_entry_uint64.getType() == GBKFCore::ValueType::UINT64);
-    assert(output_entry_uint64.getValues<uint64_t>() == input_values_uint64);
+    assert(output_entry_uint64.getValues<uint64_t>(GBKFCore::ValueType::UINT64) == input_values_uint64);
 
     auto ss = map["SS"][0];
     assert(ss.instance_id == 5);
