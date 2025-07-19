@@ -126,10 +126,10 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
                 std::vector<std::string> values;
                 uint64_t pos2;
 
-                if (m_string_encoding == Constants::StringEncodings::UTF8) {
+                if (m_string_encoding == Constants::StringEncoding::UTF8) {
                     std::tie(values, pos2) = readValuesStringUTF8(pos1, values_nb, max_string_size);
 
-                } else if (m_string_encoding == Constants::StringEncodings::ASCII) {
+                } else if (m_string_encoding == Constants::StringEncoding::ASCII) {
                         std::tie(values, pos2) = readValuesStringASCII(pos1, values_nb, max_string_size);
 
                 }else {

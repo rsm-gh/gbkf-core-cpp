@@ -90,7 +90,7 @@ void testKeyedValues(const std::string &encoding) {
     std::vector<int64_t> input_values_int64 = {100, -454545, 300, 400, 500, 600, 1, 800, -900, 1000};
 
     std::vector<std::string> input_strings;
-    if (encoding == GBKFCore::Constants::StringEncodings::ASCII) {
+    if (encoding == GBKFCore::Constants::StringEncoding::ASCII) {
         input_strings = {"A","B","HELLO","TEST"};
     }else {
         // examples with 1, 2, 3, 4 bytes
@@ -120,7 +120,7 @@ void testKeyedValues(const std::string &encoding) {
     writer.addKeyedValuesInt32("SI", 3, input_values_int32);
     writer.addKeyedValuesInt64("SI", 4, input_values_int64);
 
-    if (encoding == GBKFCore::Constants::StringEncodings::ASCII) {
+    if (encoding == GBKFCore::Constants::StringEncoding::ASCII) {
         writer.addKeyedValuesStringASCII("ST", 1, 6, input_strings);
     }else {
         writer.addKeyedValuesStringUTF8("ST", 1, 6, input_strings);
@@ -206,7 +206,7 @@ void testKeyedValues(const std::string &encoding) {
 
 int main() {
     testHeader();
-    testKeyedValues(GBKFCore::Constants::StringEncodings::ASCII);
-    testKeyedValues(GBKFCore::Constants::StringEncodings::UTF8);
+    testKeyedValues(GBKFCore::Constants::StringEncoding::ASCII);
+    testKeyedValues(GBKFCore::Constants::StringEncoding::UTF8);
     return 0;
 }

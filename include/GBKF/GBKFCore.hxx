@@ -31,7 +31,7 @@ namespace GBKFCore {
 
         constexpr int SHA256_SIZE = 32;
 
-        namespace StringEncodings {
+        namespace StringEncoding {
             constexpr const char *UTF8 = "UTF-8";
             constexpr const char *ASCII = "ASCII";
 
