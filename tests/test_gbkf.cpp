@@ -92,6 +92,10 @@ void testKeyedValues(const std::string &encoding) {
     std::vector<std::string> input_strings;
     if (encoding == GBKFCore::Constants::StringEncoding::ASCII) {
         input_strings = {"A","B","HELLO","TEST"};
+
+    }else if (encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
+            input_strings = {"A","¢","Ñ","HELLO","TEST"};
+
     }else {
         // examples with 1, 2, 3, 4 bytes
         input_strings = {"A","é","€","𐍈"};
@@ -122,6 +126,10 @@ void testKeyedValues(const std::string &encoding) {
 
     if (encoding == GBKFCore::Constants::StringEncoding::ASCII) {
         writer.addKeyedValuesStringASCII("ST", 1, 6, input_strings);
+
+    }else if (encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
+        writer.addKeyedValuesStringLatin1("ST", 1, 6, input_strings);
+
     }else {
         writer.addKeyedValuesStringUTF8("ST", 1, 6, input_strings);
     };
@@ -207,6 +215,7 @@ void testKeyedValues(const std::string &encoding) {
 int main() {
     testHeader();
     testKeyedValues(GBKFCore::Constants::StringEncoding::ASCII);
+    testKeyedValues(GBKFCore::Constants::StringEncoding::LATIN1);
     testKeyedValues(GBKFCore::Constants::StringEncoding::UTF8);
     return 0;
 }

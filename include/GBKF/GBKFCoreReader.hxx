@@ -59,7 +59,7 @@ private:
 
     void readHeader();
 
-    [[nodiscard]] std::pair<std::string, uint64_t> readStringASCII(uint64_t start_pos, uint16_t max_size) const;
+    [[nodiscard]] std::pair<std::string, uint64_t> readString1Byte(uint64_t start_pos, uint16_t max_size) const;
 
     [[nodiscard]] std::pair<std::string, uint64_t> readStringUTF8(uint64_t start_pos, uint16_t max_size) const;
 
@@ -75,7 +75,7 @@ private:
 
     [[nodiscard]] std::pair<double, uint64_t> readFloat64(uint64_t start_pos) const;
 
-    [[nodiscard]] std::pair<std::vector<std::string>, uint64_t> readValuesStringASCII(
+    [[nodiscard]] std::pair<std::vector<std::string>, uint64_t> readValuesString1Byte(
         uint64_t start_pos,
         uint32_t values_nb,
         uint16_t max_size) const;

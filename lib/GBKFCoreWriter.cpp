@@ -135,6 +135,14 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
     }
 }
 
+void GBKFCoreWriter::addKeyedValuesStringLatin1(const std::string &key,
+                                               const uint32_t instance_id,
+                                               const uint16_t max_size,
+                                               const std::vector<std::string> &values) {
+
+    addKeyedValuesStringASCII(key, instance_id, max_size, values);
+}
+
 void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
                                               const uint32_t instance_id,
                                               const uint16_t max_size,

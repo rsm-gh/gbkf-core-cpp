@@ -42,8 +42,15 @@ public:
 
     void addKeyedValuesBoolean(const std::string &key, uint32_t instance_id, const std::vector<bool> &values);
 
-    void addKeyedValuesStringASCII(const std::string &key, uint32_t instance_id, uint16_t max_size,
-                                   const std::vector<std::string> &values);
+    void addKeyedValuesStringASCII(const std::string &key,
+                                    uint32_t instance_id,
+                                    uint16_t max_size,
+                                    const std::vector<std::string> &values);
+
+    void addKeyedValuesStringLatin1(const std::string &key,
+                                    uint32_t instance_id,
+                                    uint16_t max_size,
+                                    const std::vector<std::string> &values);
 
     void addKeyedValuesStringUTF8(const std::string &key, uint32_t instance_id, uint16_t max_size,
                                   const std::vector<std::string> &values);

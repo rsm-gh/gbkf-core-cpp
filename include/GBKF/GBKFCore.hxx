@@ -32,9 +32,9 @@ namespace GBKFCore {
         constexpr int SHA256_SIZE = 32;
 
         namespace StringEncoding {
-            constexpr const char *UTF8 = "UTF-8";
             constexpr const char *ASCII = "ASCII";
-
+            constexpr const char *LATIN1 = "LATIN-1";
+            constexpr const char *UTF8 = "UTF-8";
         }
 
         namespace Header {
