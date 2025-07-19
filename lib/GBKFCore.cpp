@@ -284,6 +284,10 @@ std::pair<std::vector<bool>, uint64_t> Reader::readValuesBool(uint64_t start_pos
                                                               const uint32_t values_nb,
                                                               const uint8_t last_byte_bools_nb) const {
 
+    if (last_byte_bools_nb < 1 || last_byte_bools_nb > 8) {
+        throw std::invalid_argument("Boolean reading out of bounds on last byte");
+    }
+
     std::vector<bool> values;
     values.reserve(values_nb);
 
