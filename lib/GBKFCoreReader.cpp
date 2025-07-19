@@ -109,7 +109,7 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
     uint64_t current_pos = Constants::Header::LENGTH;
 
     for (uint32_t i = 0; i < m_keyed_values_nb; ++i) {
-        auto [key, p1] = readAscii(current_pos, m_keys_length);
+        auto [key, p1] = readStringASCII(current_pos, m_keys_length);
         auto [instance_id, p2] = readUInt32(p1);
         auto [values_nb, p3] = readUInt32(p2);
         auto [values_type, p4] = readUInt8(p3);
@@ -119,6 +119,28 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
         keyed_entry.instance_id = instance_id;
 
         switch (keyed_entry.getType()) {
+            case ValueType::STRING: {
+
+                auto [max_string_size, pos1] = readUInt16(current_pos);
+
+                std::vector<std::string> values;
+                uint64_t pos2;
+
+                if (m_string_encoding == Constants::StringEncodings::UTF8) {
+                    std::tie(values, pos2) = readValuesStringUTF8(pos1, values_nb, max_string_size);
+
+                } else if (m_string_encoding == Constants::StringEncodings::ASCII) {
+                        std::tie(values, pos2) = readValuesStringASCII(pos1, values_nb, max_string_size);
+
+                }else {
+                    throw std::runtime_error("Invalid string encoding");
+                }
+
+                keyed_entry.addValues(values);
+                current_pos = pos2;
+                break;
+            }
+
             case ValueType::BOOLEAN: {
                 auto [last_byte_bools_nb, pos1] = readUInt8(current_pos);
                 auto [values, pos2] = readValuesBool(pos1, values_nb, last_byte_bools_nb);
@@ -236,11 +258,39 @@ void GBKFCoreReader::readHeader() {
     m_specification_id = readUInt32(Constants::Header::SPECIFICATION_ID_START).first;
     m_specification_version = readUInt16(Constants::Header::SPECIFICATION_VERSION_START).first;
 
-    m_string_encoding = readAscii(Constants::Header::STRING_ENCODING_START, Constants::Header::STRING_ENCODING_SIZE).first;
+    m_string_encoding = readStringASCII(Constants::Header::STRING_ENCODING_START, Constants::Header::STRING_ENCODING_SIZE).
+            first;
     m_string_encoding.resize(std::strlen(m_string_encoding.c_str())); // resize the string to remove the nullable bytes
 
     m_keys_length = readUInt8(Constants::Header::KEYS_SIZE_START).first;
     m_keyed_values_nb = readUInt32(Constants::Header::KEYED_VALUES_NB_START).first;
+}
+
+std::pair<std::string, uint64_t> GBKFCoreReader::readStringASCII(const uint64_t start_pos, const uint16_t max_size) const {
+
+    const uint8_t* start_ptr = m_bytes_data.data() + start_pos;
+    const uint8_t* end_ptr = start_ptr + max_size;
+
+    const uint8_t* null_pos = std::find(start_ptr, end_ptr, '\0');
+
+    std::string value(reinterpret_cast<const char*>(start_ptr),
+                      reinterpret_cast<const char*>(null_pos));
+
+    return {value, start_pos + max_size};
+}
+
+std::pair<std::string, uint64_t> GBKFCoreReader::readStringUTF8(const uint64_t start_pos, const uint16_t max_size) const {
+    const auto end_pos = start_pos + max_size * 4;
+
+    const uint8_t *start_ptr = m_bytes_data.data() + start_pos;
+    const uint8_t *null_pos = std::find(start_ptr, m_bytes_data.data() + end_pos, '\0');
+
+    std::string string(
+        reinterpret_cast<const char *>(start_ptr),
+        reinterpret_cast<const char *>(null_pos)
+    );
+
+    return {string, end_pos};
 }
 
 std::pair<uint8_t, uint64_t> GBKFCoreReader::readUInt8(const uint64_t start_pos) const {
@@ -267,14 +317,6 @@ std::pair<uint64_t, uint64_t> GBKFCoreReader::readUInt64(const uint64_t start_po
         value = (value << 8) | static_cast<uint64_t>(m_bytes_data[start_pos + i]);
     }
     return {value, start_pos + 8};
-}
-
-std::pair<std::string, uint64_t> GBKFCoreReader::readAscii(const uint64_t start_pos, const uint8_t length) const {
-    auto value = std::string(m_bytes_data.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos),
-                             m_bytes_data.begin() + static_cast<std::vector<uint8_t>::difference_type>(
-                                 start_pos + length));
-
-    return {value, start_pos + length};
 }
 
 std::pair<float, uint64_t> GBKFCoreReader::readFloat32(const uint64_t start_pos) const {
@@ -314,8 +356,34 @@ std::pair<std::vector<bool>, uint64_t> GBKFCoreReader::readValuesBool(uint64_t s
     return {values, start_pos};
 }
 
+std::pair<std::vector<std::string>, uint64_t> GBKFCoreReader::readValuesStringASCII(
+    uint64_t start_pos,
+    const uint32_t values_nb,
+    const uint16_t max_size) const {
+    std::vector<std::string> values(values_nb);
+
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        std::tie( values[i], start_pos) = readStringASCII(start_pos, max_size);
+    }
+    return {values, start_pos};
+}
+
+std::pair<std::vector<std::string>, uint64_t> GBKFCoreReader::readValuesStringUTF8(
+    uint64_t start_pos,
+    const uint32_t values_nb,
+    const uint16_t max_size) const {
+    std::vector<std::string> values(values_nb);
+    for (uint32_t i = 0; i < values_nb; ++i) {
+        auto [string, new_pos] = readStringUTF8(start_pos, max_size);
+        values[i] = string;
+        start_pos = new_pos;
+    }
+    return {values, start_pos};
+}
+
 std::pair<std::vector<int8_t>, uint64_t> GBKFCoreReader::readValuesInt8(
-    uint64_t start_pos, const uint32_t values_nb) const {
+    uint64_t start_pos,
+    const uint32_t values_nb) const {
     std::vector<int8_t> values(values_nb);
     for (uint32_t i = 0; i < values_nb; ++i) {
         auto [value, new_pos] = readUInt8(start_pos);

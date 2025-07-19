@@ -59,6 +59,10 @@ private:
 
     void readHeader();
 
+    [[nodiscard]] std::pair<std::string, uint64_t> readStringASCII(uint64_t start_pos, uint16_t max_size) const;
+
+    [[nodiscard]] std::pair<std::string, uint64_t> readStringUTF8(uint64_t start_pos, uint16_t max_size) const;
+
     [[nodiscard]] std::pair<uint8_t, uint64_t> readUInt8(uint64_t start_pos) const;
 
     [[nodiscard]] std::pair<uint16_t, uint64_t> readUInt16(uint64_t start_pos) const;
@@ -67,11 +71,19 @@ private:
 
     [[nodiscard]] std::pair<uint64_t, uint64_t> readUInt64(uint64_t start_pos) const;
 
-    [[nodiscard]] std::pair<std::string, uint64_t> readAscii(uint64_t start_pos, uint8_t length) const;
-
     [[nodiscard]] std::pair<float, uint64_t> readFloat32(uint64_t start_pos) const;
 
     [[nodiscard]] std::pair<double, uint64_t> readFloat64(uint64_t start_pos) const;
+
+    [[nodiscard]] std::pair<std::vector<std::string>, uint64_t> readValuesStringASCII(
+        uint64_t start_pos,
+        uint32_t values_nb,
+        uint16_t max_size) const;
+
+    [[nodiscard]] std::pair<std::vector<std::string>, uint64_t> readValuesStringUTF8(
+        uint64_t start_pos,
+        uint32_t values_nb,
+        uint16_t max_size) const;
 
     [[nodiscard]] std::pair<std::vector<bool>, uint64_t> readValuesBool(
         uint64_t start_pos, uint32_t values_nb, uint8_t last_byte_bools_nb) const;

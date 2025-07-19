@@ -76,11 +76,8 @@ void testHeader() {
     std::cout << "test OK > GBKFCore Header.\n";
 }
 
-void testKeyedValues() {
+void testKeyedValues(const std::string &encoding) {
     std::string path = "test_core_values.gbkf";
-
-    GBKFCoreWriter writer;
-    writer.setKeysSize(2);
 
     std::vector<uint8_t> input_values_uint8 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 255};
     std::vector<uint16_t> input_values_uint16 = {1, 200, 300, 400, 45, 600, 700, 800, 900, 1000};
@@ -92,10 +89,26 @@ void testKeyedValues() {
     std::vector<int32_t> input_values_int32 = {100, 200, 1, 400, 500, -600, 700, 454545, -900, 1000};
     std::vector<int64_t> input_values_int64 = {100, -454545, 300, 400, 500, 600, 1, 800, -900, 1000};
 
+    std::vector<std::string> input_strings;
+    if (encoding == GBKFCore::Constants::StringEncodings::ASCII) {
+        input_strings = {"A","B","HELLO","TEST"};
+    }else {
+        // examples with 1, 2, 3, 4 bytes
+        input_strings = {"A","é","€","𐍈"};
+    };
+
     std::vector<bool> input_booleans = {true, true, true, true, false, false, false, false, true, false};
     std::vector<float> input_floats32 = {0, .3467846785, 6.5, 110.9, -15000.865};
     std::vector<double> input_floats64 = {0, .3434546785, 1.5, 1000.9, -10000.865};
 
+
+    //
+    // WRITER
+    //
+
+    GBKFCoreWriter writer;
+    writer.setKeysSize(2);
+    writer.setStringEncoding(encoding);
 
     writer.addKeyedValuesUInt8("UI", 1, input_values_uint8);
     writer.addKeyedValuesUInt16("UI", 2, input_values_uint16);
@@ -107,11 +120,22 @@ void testKeyedValues() {
     writer.addKeyedValuesInt32("SI", 3, input_values_int32);
     writer.addKeyedValuesInt64("SI", 4, input_values_int64);
 
+    if (encoding == GBKFCore::Constants::StringEncodings::ASCII) {
+        writer.addKeyedValuesStringASCII("ST", 1, 6, input_strings);
+    }else {
+        writer.addKeyedValuesStringUTF8("ST", 1, 6, input_strings);
+    };
+
     writer.addKeyedValuesBoolean("BO", 1, input_booleans);
     writer.addKeyedValuesFloat32("F3", 5, input_floats32);
     writer.addKeyedValuesFloat64("F6", 1, input_floats64);
 
     writer.write(path, true);
+
+
+    //
+    // READER
+    //
 
     GBKFCoreReader reader(path);
     auto map = reader.getKeyedEntries();
@@ -155,6 +179,13 @@ void testKeyedValues() {
         assert(output_booleans[i] == input_booleans[i]);
     }
 
+    auto output_entry_strings = map["ST"][0];
+    assert(output_entry_strings.instance_id == 1);
+    std::vector<std::string> output_strings = output_entry_strings.getValues<std::string>();
+    for (size_t i = 0; i < input_strings.size(); ++i) {
+        assert(output_strings[i] == input_strings[i]);
+    }
+
     auto output_entry_float32 = map["F3"][0];
     assert(output_entry_float32.instance_id == 5);
     std::vector<float> output_floats32 = output_entry_float32.getValues<float>();
@@ -170,11 +201,12 @@ void testKeyedValues() {
     }
 
     assert(reader.verifiesSha());
-    std::cout << "test OK > GBKFCore Values.\n";
+    std::cout << "test OK > GBKFCore Values "+encoding+" \n";
 }
 
 int main() {
     testHeader();
-    testKeyedValues();
+    testKeyedValues(GBKFCore::Constants::StringEncodings::ASCII);
+    testKeyedValues(GBKFCore::Constants::StringEncodings::UTF8);
     return 0;
 }

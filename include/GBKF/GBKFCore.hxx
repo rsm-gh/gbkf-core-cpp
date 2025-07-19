@@ -31,6 +31,12 @@ namespace GBKFCore {
 
         constexpr int SHA256_SIZE = 32;
 
+        namespace StringEncodings {
+            constexpr const char *UTF8 = "UTF-8";
+            constexpr const char *ASCII = "ASCII";
+
+        }
+
         namespace Header {
             constexpr const char *START_KEYWORD = "gbkf";
             constexpr int START_KEYWORD_SIZE = 4;
@@ -44,7 +50,6 @@ namespace GBKFCore {
             constexpr int SPECIFICATION_VERSION_START = SPECIFICATION_ID_START + SPECIFICATION_SIZE;
             constexpr int SPECIFICATION_VERSION_SIZE = 2;
 
-            constexpr const char *DEFAULT_STRING_ENCODING = "UTF-8";
             constexpr int STRING_ENCODING_START = SPECIFICATION_VERSION_START + SPECIFICATION_VERSION_SIZE;
             constexpr int STRING_ENCODING_SIZE = 16;
 
@@ -112,6 +117,10 @@ namespace GBKFCore {
 
     inline KeyedEntry::KeyedEntry(const ValueType type) : m_type(type) {
         switch (type) {
+            case ValueType::STRING:
+                m_values = std::make_shared<std::vector<std::string> >();
+                break;
+
             case ValueType::BOOLEAN:
                 m_values = std::make_shared<std::vector<bool> >();
                 break;
@@ -201,6 +210,8 @@ namespace GBKFCore {
     ValueType KeyedEntry::deduceValueType() {
         if constexpr (std::is_same_v<T, bool>) {
             return ValueType::BOOLEAN;
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            return ValueType::STRING;
         } else if constexpr (std::is_same_v<T, int8_t>) {
             return ValueType::INT8;
         } else if constexpr (std::is_same_v<T, int16_t>) {

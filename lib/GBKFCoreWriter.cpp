@@ -61,8 +61,7 @@ void GBKFCoreWriter::setSpecificationVersion(const uint16_t value) {
     setUInt16(value, 0, Constants::Header::SPECIFICATION_VERSION_START);
 }
 
-void GBKFCoreWriter::setStringEncoding(const std::string& encoding) {
-
+void GBKFCoreWriter::setStringEncoding(const std::string &encoding) {
     const std::string normalized_encoding = normalizeString(encoding);
 
     if (normalized_encoding.empty()) {
@@ -100,6 +99,74 @@ void GBKFCoreWriter::setKeyedValuesNb(const uint32_t value) {
 
 void GBKFCoreWriter::setKeyedValuesNbAuto() {
     setKeyedValuesNb(m_keyed_values_nb);
+}
+
+void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
+                                               const uint32_t instance_id,
+                                               const uint16_t max_size,
+                                               const std::vector<std::string> &values) {
+    // Set the header
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
+
+    // Push the maximum string size
+    const auto uint8_max_size = formatUInt16(max_size);
+    line_bytes.insert(line_bytes.end(), uint8_max_size.begin(), uint8_max_size.end());
+
+    // Set the values
+    for (const std::string &str: values) {
+        auto normalized_string = normalizeString(str);
+
+        if (normalized_string.size() > max_size) {
+            throw std::invalid_argument("String out of bounds");
+        }
+
+        std::vector<uint8_t> buffer(max_size, 0);
+        std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
+
+        line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
+    }
+
+    // Add to the buffer
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
+}
+
+void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
+                                              const uint32_t instance_id,
+                                              const uint16_t max_size,
+                                              const std::vector<std::string> &values) {
+    // Set the header
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
+
+    // Push the maximum string size
+    const auto uint8_max_size = formatUInt16(max_size);
+    line_bytes.insert(line_bytes.end(), uint8_max_size.begin(), uint8_max_size.end());
+
+    // Set the values
+    for (const std::string &str: values) {
+        auto normalized_string = normalizeString(str);
+
+        if (normalized_string.size() > max_size) {
+            throw std::invalid_argument("String out of bounds");
+        }
+
+        std::vector<uint8_t> buffer(max_size * 4, 0); // max_size * 4 = utf-8 can use 4 bytes
+        std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
+
+        line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
+    }
+
+    // Add to the buffer
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
 }
 
 void GBKFCoreWriter::addKeyedValuesBoolean(const std::string &key,
@@ -347,7 +414,7 @@ void GBKFCoreWriter::write(const std::string &write_path, const bool auto_update
     file.write(reinterpret_cast<const char *>(hash.data()), static_cast<std::streamsize>(hash.size()));
 }
 
-std::string GBKFCoreWriter::normalizeString(const std::string& input) {
+std::string GBKFCoreWriter::normalizeString(const std::string &input) {
     std::string result = input;
 
     // Trim trailing nulls

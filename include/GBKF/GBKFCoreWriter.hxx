@@ -26,7 +26,7 @@ public:
 
     void reset();
 
-    void setStringEncoding(const std::string& encoding = GBKFCore::Constants::Header::DEFAULT_STRING_ENCODING);
+    void setStringEncoding(const std::string &encoding = GBKFCore::Constants::StringEncodings::UTF8);
 
     void setGBKFVersion(uint8_t value = 0);
 
@@ -41,6 +41,12 @@ public:
     void setKeyedValuesNbAuto();
 
     void addKeyedValuesBoolean(const std::string &key, uint32_t instance_id, const std::vector<bool> &values);
+
+    void addKeyedValuesStringASCII(const std::string &key, uint32_t instance_id, uint16_t max_size,
+                                   const std::vector<std::string> &values);
+
+    void addKeyedValuesStringUTF8(const std::string &key, uint32_t instance_id, uint16_t max_size,
+                                  const std::vector<std::string> &values);
 
     void addKeyedValuesInt8(const std::string &key, uint32_t instance_id, const std::vector<int8_t> &values);
 
@@ -71,7 +77,7 @@ private:
     uint32_t m_keyed_values_nb;
     std::vector<std::string> m_keys;
 
-    static std::string normalizeString(const std::string& input);
+    static std::string normalizeString(const std::string &input);
 
     static std::vector<uint8_t> formatKey(const std::string &key);
 
