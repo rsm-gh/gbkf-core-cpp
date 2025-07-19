@@ -35,11 +35,11 @@ Reader::Reader(const std::vector<uint8_t> &data) {
     m_keys_length = 1;
     m_keyed_values_nb = 0;
 
-    m_bytes_data = data;
-
-    if (m_bytes_data.size() < Constants::SHA256_LENGTH) {
+    if (data.size() < Constants::Header::LENGTH + Constants::SHA256_LENGTH) {
         throw std::runtime_error("Data too small");
     }
+
+    m_bytes_data = data;
 
     readSha();
     readHeader();
@@ -55,17 +55,17 @@ Reader::Reader(const std::string &read_path) {
 
     std::ifstream file(read_path, std::ios::binary);
     if (!file) {
-        throw std::runtime_error("Cannot open file: " + read_path);
+        throw std::runtime_error("Cannot open file");
     }
 
     file.seekg(0, std::ios::end);
     size_t size = file.tellg();
     m_bytes_data.resize(size);
+    file.seekg(0, std::ios::beg);
 
     // std::ifstream::read() only accepts a char* pointer as the destination buffer
     // so reinterpret_cast is used to convert the pointer of the uint8 vector.
     // This works because char and uint8_t are both 1-byte types.
-    file.seekg(0, std::ios::beg);
     file.read(reinterpret_cast<char *>(m_bytes_data.data()), static_cast<std::streamsize>(size));
 
     readSha();
