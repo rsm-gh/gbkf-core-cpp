@@ -151,7 +151,7 @@ void testKeyedValues() {
 
     auto output_entry_float64 = map["F6"][0];
     assert(output_entry_float64.instance_id == 1);
-    std::vector<uint8_t> output_floats64 = output_entry_float64.getValues<uint8_t>();
+    std::vector<double> output_floats64 = output_entry_float64.getValues<double>();
     for (size_t i = 0; i < input_floats64.size(); ++i) {
         assert(std::abs(output_floats64[i] - input_floats64[i]) < 1e-6);
     }
