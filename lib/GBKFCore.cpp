@@ -58,11 +58,14 @@ Reader::Reader(const std::string &read_path) {
         throw std::runtime_error("Cannot open file: " + read_path);
     }
 
-    file.unsetf(std::ios::skipws);
     file.seekg(0, std::ios::end);
     size_t size = file.tellg();
-    file.seekg(0, std::ios::beg);
     m_bytes_data.resize(size);
+
+    // std::ifstream::read() only accepts a char* pointer as the destination buffer
+    // so reinterpret_cast is used to convert the pointer of the uint8 vector.
+    // This works because char and uint8_t are both 1-byte types.
+    file.seekg(0, std::ios::beg);
     file.read(reinterpret_cast<char *>(m_bytes_data.data()), static_cast<std::streamsize>(size));
 
     readSha();
