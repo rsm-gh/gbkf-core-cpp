@@ -64,11 +64,10 @@ namespace GBKFCore {
     }
 
     enum class ValueType {
-        BLOB = 0,
-        BOOLEAN = 1,
+        BLOB = 1,
+        BOOLEAN = 2,
 
-        STRING = 12,
-        TEXT = 13,
+        STRING = 10,
 
         INT8 = 20,
         INT32 = 21,

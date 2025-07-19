@@ -90,15 +90,20 @@ void testKeyedValues(const std::string &encoding) {
     std::vector<int64_t> input_values_int64 = {100, -454545, 300, 400, 500, 600, 1, 800, -900, 1000};
 
     std::vector<std::string> input_strings;
+    std::vector<std::string> input_texts;
+
     if (encoding == GBKFCore::Constants::StringEncoding::ASCII) {
         input_strings = {"A","B","HELLO","TEST"};
+        input_texts = {"A","BB","CCC","DDDD"};
 
     }else if (encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
-            input_strings = {"A","¢","Ñ","HELLO","TEST"};
+        input_strings = {"A","¢","Ñ","HELLO","TEST"};
+        input_texts = {"A","BB","¢¢¢","ÑÑÑÑ"};
 
     }else {
         // examples with 1, 2, 3, 4 bytes
         input_strings = {"A","é","€","𐍈"};
+        input_texts = {"A","éé","€€€","𐍈𐍈𐍈𐍈𐍈"};
     };
 
     std::vector<bool> input_booleans = {true, true, true, true, false, false, false, false, true, false};
@@ -125,13 +130,16 @@ void testKeyedValues(const std::string &encoding) {
     writer.addKeyedValuesInt64("SI", 4, input_values_int64);
 
     if (encoding == GBKFCore::Constants::StringEncoding::ASCII) {
-        writer.addKeyedValuesStringASCII("ST", 1, 6, input_strings);
+        writer.addKeyedValuesStringASCII("ST", 1, input_strings, 6);
+        writer.addKeyedValuesStringASCII("TT", 1, input_texts);
 
     }else if (encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
-        writer.addKeyedValuesStringLatin1("ST", 1, 6, input_strings);
+        writer.addKeyedValuesStringLatin1("ST", 1, input_strings, 6);
+        writer.addKeyedValuesStringLatin1("TT", 1, input_texts);
 
     }else {
-        writer.addKeyedValuesStringUTF8("ST", 1, 6, input_strings);
+        writer.addKeyedValuesStringUTF8("ST", 1, input_strings, 6);
+        writer.addKeyedValuesStringUTF8("TT", 1, input_texts);
     };
 
     writer.addKeyedValuesBoolean("BO", 1, input_booleans);
@@ -192,6 +200,13 @@ void testKeyedValues(const std::string &encoding) {
     std::vector<std::string> output_strings = output_entry_strings.getValues<std::string>();
     for (size_t i = 0; i < input_strings.size(); ++i) {
         assert(output_strings[i] == input_strings[i]);
+    }
+
+    auto output_entry_texts = map["TT"][0];
+    assert(output_entry_texts.instance_id == 1);
+    std::vector<std::string> output_texts = output_entry_texts.getValues<std::string>();
+    for (size_t i = 0; i < input_texts.size(); ++i) {
+        assert(output_texts[i] == input_texts[i]);
     }
 
     auto output_entry_float32 = map["F3"][0];

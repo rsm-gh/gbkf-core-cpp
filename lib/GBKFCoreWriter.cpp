@@ -103,8 +103,8 @@ void GBKFCoreWriter::setKeyedValuesNbAuto() {
 
 void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
                                                const uint32_t instance_id,
-                                               const uint16_t max_size,
-                                               const std::vector<std::string> &values) {
+                                               const std::vector<std::string> &values,
+                                               const uint16_t max_size) {
     // Set the header
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
 
@@ -116,14 +116,28 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
     for (const std::string &str: values) {
         auto normalized_string = normalizeString(str);
 
-        if (normalized_string.size() > max_size) {
-            throw std::invalid_argument("String out of bounds");
+
+        if (max_size == 0) {
+
+            // Set the string size
+            auto string_size = formatUInt32(normalized_string.size());
+            line_bytes.insert(line_bytes.end(), string_size.begin(), string_size.end());
+
+            // Set the value
+            line_bytes.insert(line_bytes.end(), normalized_string.begin(), normalized_string.end());
+
+        }else {
+
+            if (normalized_string.size() > max_size) {
+                throw std::invalid_argument("String out of bounds");
+            }
+
+            std::vector<uint8_t> buffer(max_size, 0);
+            std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
+
+            line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
+
         }
-
-        std::vector<uint8_t> buffer(max_size, 0);
-        std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
-
-        line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
     }
 
     // Add to the buffer
@@ -136,17 +150,16 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
 }
 
 void GBKFCoreWriter::addKeyedValuesStringLatin1(const std::string &key,
-                                               const uint32_t instance_id,
-                                               const uint16_t max_size,
-                                               const std::vector<std::string> &values) {
-
-    addKeyedValuesStringASCII(key, instance_id, max_size, values);
+                                                const uint32_t instance_id,
+                                                const std::vector<std::string> &values,
+                                                const uint16_t max_size) {
+    addKeyedValuesStringASCII(key, instance_id, values, max_size);
 }
 
 void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
                                               const uint32_t instance_id,
-                                              const uint16_t max_size,
-                                              const std::vector<std::string> &values) {
+                                              const std::vector<std::string> &values,
+                                              const uint16_t max_size) {
     // Set the header
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
 
@@ -158,14 +171,31 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
     for (const std::string &str: values) {
         auto normalized_string = normalizeString(str);
 
-        if (normalized_string.size() > max_size) {
-            throw std::invalid_argument("String out of bounds");
+        if (max_size == 0) {
+
+            // Set the string size
+            auto string_size = formatUInt32(normalized_string.size());
+            line_bytes.insert(line_bytes.end(), string_size.begin(), string_size.end());
+
+            // Set the value
+            std::vector<uint8_t> buffer(normalized_string.size() * 4, 0); // max_size * 4 = utf-8 can use 4 bytes
+            std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
+
+            line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
+
+        }else {
+
+            if (normalized_string.size() > max_size) {
+                throw std::invalid_argument("String out of bounds");
+            }
+
+            std::vector<uint8_t> buffer(max_size * 4, 0); // max_size * 4 = utf-8 can use 4 bytes
+            std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
+
+            line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
+
         }
 
-        std::vector<uint8_t> buffer(max_size * 4, 0); // max_size * 4 = utf-8 can use 4 bytes
-        std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
-
-        line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
     }
 
     // Add to the buffer
@@ -176,6 +206,7 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
         m_keys.push_back(key);
     }
 }
+
 
 void GBKFCoreWriter::addKeyedValuesBoolean(const std::string &key,
                                            const uint32_t instance_id,
