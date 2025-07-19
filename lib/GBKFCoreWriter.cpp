@@ -37,7 +37,7 @@ GBKFCoreWriter::GBKFCoreWriter() {
 
 void GBKFCoreWriter::reset() {
     m_byte_buffer.assign(Constants::Header::LENGTH, 0);
-    std::memcpy(m_byte_buffer.data(), Constants::Header::START_KEYWORD, Constants::Header::START_KEYWORD_LENGTH);
+    std::memcpy(m_byte_buffer.data(), Constants::Header::START_KEYWORD, Constants::Header::START_KEYWORD_SIZE);
     m_keyed_values_nb = 0;
     m_keys.clear();
     m_keys_length = 1;
@@ -45,7 +45,7 @@ void GBKFCoreWriter::reset() {
     setSpecificationId();
     setSpecificationVersion();
     setStringEncoding();
-    setKeysLength();
+    setKeysSize();
     setKeyedValuesNb();
 }
 
@@ -69,28 +69,28 @@ void GBKFCoreWriter::setStringEncoding(const std::string& encoding) {
         throw std::invalid_argument("GBKFCoreWriter::setStringEncoding: empty string encoding");
     }
 
-    if (normalized_encoding.size() > Constants::Header::STRING_ENCODING_LENGTH_LENGTH) {
+    if (normalized_encoding.size() > Constants::Header::STRING_ENCODING_SIZE) {
         throw std::invalid_argument("GBKFCoreWriter::setStringEncoding: encoding out of bounds");
     }
 
     std::memset(
-        m_byte_buffer.data() + Constants::Header::STRING_ENCODING_LENGTH_START,
+        m_byte_buffer.data() + Constants::Header::STRING_ENCODING_START,
         0,
-        Constants::Header::STRING_ENCODING_LENGTH_LENGTH);
+        Constants::Header::STRING_ENCODING_SIZE);
 
     std::memcpy(
-        m_byte_buffer.data() + Constants::Header::STRING_ENCODING_LENGTH_START,
+        m_byte_buffer.data() + Constants::Header::STRING_ENCODING_START,
         encoding.c_str(),
         encoding.size());
 }
 
-void GBKFCoreWriter::setKeysLength(const uint8_t value) {
+void GBKFCoreWriter::setKeysSize(const uint8_t value) {
     for (const auto &key: m_keys) {
         if (key.length() != static_cast<size_t>(value)) {
             throw std::invalid_argument("Key length mismatch");
         };
     }
-    setUInt8(value, 1, Constants::Header::KEYS_LENGTH_START);
+    setUInt8(value, 1, Constants::Header::KEYS_SIZE_START);
     m_keys_length = value;
 }
 
@@ -332,7 +332,7 @@ void GBKFCoreWriter::write(const std::string &write_path, const bool auto_update
         setKeyedValuesNbAuto();
     }
 
-    std::vector<uint8_t> hash(Constants::SHA256_LENGTH);
+    std::vector<uint8_t> hash(Constants::SHA256_SIZE);
 
 #ifdef USE_OPEN_SSL
     SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
@@ -419,8 +419,8 @@ std::vector<uint8_t> GBKFCoreWriter::formatFloat32(const float value) {
         throw std::invalid_argument("Float32 too large");
     }
 
-    std::vector<uint8_t> out(Constants::FLOAT32_LENGTH);
-    std::memcpy(out.data(), &value, Constants::FLOAT32_LENGTH);
+    std::vector<uint8_t> out(Constants::FLOAT32_SIZE);
+    std::memcpy(out.data(), &value, Constants::FLOAT32_SIZE);
     return out;
 }
 
@@ -430,8 +430,8 @@ std::vector<uint8_t> GBKFCoreWriter::formatFloat64(const double value) {
         throw std::invalid_argument("Float64 too large");
     }
 
-    std::vector<uint8_t> out(Constants::FLOAT62_LENGTH);
-    std::memcpy(out.data(), &value, Constants::FLOAT62_LENGTH);
+    std::vector<uint8_t> out(Constants::FLOAT62_SIZE);
+    std::memcpy(out.data(), &value, Constants::FLOAT62_SIZE);
     return out;
 }
 

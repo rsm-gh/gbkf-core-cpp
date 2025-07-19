@@ -23,38 +23,38 @@
 
 namespace GBKFCore {
     namespace Constants {
-        constexpr size_t FLOAT32_LENGTH = 4;
+        constexpr size_t FLOAT32_SIZE = 4;
         constexpr double GBKF_FLOAT32_MAX = 3.4028235e+38f;
 
-        constexpr size_t FLOAT62_LENGTH = 8;
+        constexpr size_t FLOAT62_SIZE = 8;
         constexpr double GBKF_FLOAT62_MAX = 1.7976931348623157e+308;
 
-        constexpr int SHA256_LENGTH = 32;
+        constexpr int SHA256_SIZE = 32;
 
         namespace Header {
             constexpr const char *START_KEYWORD = "gbkf";
-            constexpr int START_KEYWORD_LENGTH = 4;
+            constexpr int START_KEYWORD_SIZE = 4;
 
-            constexpr int GBKF_VERSION_START = START_KEYWORD_LENGTH;
-            constexpr int GBKF_VERSION_LENGTH = 1;
+            constexpr int GBKF_VERSION_START = START_KEYWORD_SIZE;
+            constexpr int GBKF_VERSION_SIZE = 1;
 
-            constexpr int SPECIFICATION_ID_START = GBKF_VERSION_START + GBKF_VERSION_LENGTH;
-            constexpr int SPECIFICATION_LENGTH = 4;
+            constexpr int SPECIFICATION_ID_START = GBKF_VERSION_START + GBKF_VERSION_SIZE;
+            constexpr int SPECIFICATION_SIZE = 4;
 
-            constexpr int SPECIFICATION_VERSION_START = SPECIFICATION_ID_START + SPECIFICATION_LENGTH;
-            constexpr int SPECIFICATION_VERSION_LENGTH = 2;
+            constexpr int SPECIFICATION_VERSION_START = SPECIFICATION_ID_START + SPECIFICATION_SIZE;
+            constexpr int SPECIFICATION_VERSION_SIZE = 2;
 
             constexpr const char *DEFAULT_STRING_ENCODING = "UTF-8";
-            constexpr int STRING_ENCODING_LENGTH_START = SPECIFICATION_VERSION_START + SPECIFICATION_VERSION_LENGTH;
-            constexpr int STRING_ENCODING_LENGTH_LENGTH = 16;
+            constexpr int STRING_ENCODING_START = SPECIFICATION_VERSION_START + SPECIFICATION_VERSION_SIZE;
+            constexpr int STRING_ENCODING_SIZE = 16;
 
-            constexpr int KEYS_LENGTH_START = STRING_ENCODING_LENGTH_START + STRING_ENCODING_LENGTH_LENGTH;
-            constexpr int KEYS_LENGTH_LENGTH = 1;
+            constexpr int KEYS_SIZE_START = STRING_ENCODING_START + STRING_ENCODING_SIZE;
+            constexpr int KEYS_SIZE_SIZE = 1;
 
-            constexpr int KEYED_VALUES_NB_START = KEYS_LENGTH_START + KEYS_LENGTH_LENGTH;
-            constexpr int KEYED_VALUES_NB_LENGTH = 4;
+            constexpr int KEYED_VALUES_NB_START = KEYS_SIZE_START + KEYS_SIZE_SIZE;
+            constexpr int KEYED_VALUES_NB_SIZE = 4;
 
-            constexpr int LENGTH = KEYED_VALUES_NB_START + KEYED_VALUES_NB_LENGTH;
+            constexpr int LENGTH = KEYED_VALUES_NB_START + KEYED_VALUES_NB_SIZE;
         }
     }
 

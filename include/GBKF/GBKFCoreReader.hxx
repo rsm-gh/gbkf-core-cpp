@@ -37,7 +37,7 @@ public:
 
     [[nodiscard]] std::string getStringEncoding() const;
 
-    [[nodiscard]] uint8_t getKeysLength() const;
+    [[nodiscard]] uint8_t getKeysSize() const;
 
     [[nodiscard]] uint32_t getKeyedValuesNb() const;
 

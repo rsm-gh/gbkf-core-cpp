@@ -37,7 +37,7 @@ GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
     m_keys_length = 1;
     m_keyed_values_nb = 0;
 
-    if (data.size() < Constants::Header::LENGTH + Constants::SHA256_LENGTH) {
+    if (data.size() < Constants::Header::LENGTH + Constants::SHA256_SIZE) {
         throw std::runtime_error("Data too small");
     }
 
@@ -95,7 +95,7 @@ std::string GBKFCoreReader::getStringEncoding() const {
     return m_string_encoding;
 }
 
-uint8_t GBKFCoreReader::getKeysLength() const {
+uint8_t GBKFCoreReader::getKeysSize() const {
     return m_keys_length;
 }
 
@@ -214,21 +214,21 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
 
 void GBKFCoreReader::readSha() {
 #ifdef USE_OPEN_SSL
-    m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_LENGTH, m_bytes_data.end());
-    m_sha256_calculated.resize(Constants::SHA256_LENGTH);
-    SHA256(m_bytes_data.data(), m_bytes_data.size() - Constants::SHA256_LENGTH, m_sha256_calculated.data());
+    m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_SIZE, m_bytes_data.end());
+    m_sha256_calculated.resize(Constants::SHA256_SIZE);
+    SHA256(m_bytes_data.data(), m_bytes_data.size() - Constants::SHA256_SIZE, m_sha256_calculated.data());
 
 #else
-    m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_LENGTH, m_bytes_data.end());
-    m_sha256_calculated.resize(Constants::SHA256_LENGTH);
-    picosha2::hash256(m_bytes_data.begin(), m_bytes_data.end() - Constants::SHA256_LENGTH, m_sha256_calculated.begin(),
+    m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_SIZE, m_bytes_data.end());
+    m_sha256_calculated.resize(Constants::SHA256_SIZE);
+    picosha2::hash256(m_bytes_data.begin(), m_bytes_data.end() - Constants::SHA256_SIZE, m_sha256_calculated.begin(),
                       m_sha256_calculated.end());
 
 #endif
 }
 
 void GBKFCoreReader::readHeader() {
-    if (memcmp(m_bytes_data.data(), Constants::Header::START_KEYWORD, Constants::Header::START_KEYWORD_LENGTH) != 0) {
+    if (memcmp(m_bytes_data.data(), Constants::Header::START_KEYWORD, Constants::Header::START_KEYWORD_SIZE) != 0) {
         throw std::invalid_argument("Invalid start keyword");
     }
 
@@ -236,10 +236,10 @@ void GBKFCoreReader::readHeader() {
     m_specification_id = readUInt32(Constants::Header::SPECIFICATION_ID_START).first;
     m_specification_version = readUInt16(Constants::Header::SPECIFICATION_VERSION_START).first;
 
-    m_string_encoding = readAscii(Constants::Header::STRING_ENCODING_LENGTH_START, Constants::Header::STRING_ENCODING_LENGTH_LENGTH).first;
+    m_string_encoding = readAscii(Constants::Header::STRING_ENCODING_START, Constants::Header::STRING_ENCODING_SIZE).first;
     m_string_encoding.resize(std::strlen(m_string_encoding.c_str())); // resize the string to remove the nullable bytes
 
-    m_keys_length = readUInt8(Constants::Header::KEYS_LENGTH_START).first;
+    m_keys_length = readUInt8(Constants::Header::KEYS_SIZE_START).first;
     m_keyed_values_nb = readUInt32(Constants::Header::KEYED_VALUES_NB_START).first;
 }
 
@@ -279,14 +279,14 @@ std::pair<std::string, uint64_t> GBKFCoreReader::readAscii(const uint64_t start_
 
 std::pair<float, uint64_t> GBKFCoreReader::readFloat32(const uint64_t start_pos) const {
     float value;
-    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT32_LENGTH);
-    return {value, start_pos + Constants::FLOAT32_LENGTH};
+    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT32_SIZE);
+    return {value, start_pos + Constants::FLOAT32_SIZE};
 }
 
 std::pair<double, uint64_t> GBKFCoreReader::readFloat64(const uint64_t start_pos) const {
     double value;
-    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT62_LENGTH);
-    return {value, start_pos + Constants::FLOAT62_LENGTH};
+    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT62_SIZE);
+    return {value, start_pos + Constants::FLOAT62_SIZE};
 }
 
 std::pair<std::vector<bool>, uint64_t> GBKFCoreReader::readValuesBool(uint64_t start_pos,

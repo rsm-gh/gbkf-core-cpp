@@ -34,7 +34,7 @@ public:
 
     void setSpecificationVersion(uint16_t value = 0);
 
-    void setKeysLength(uint8_t value = 1);
+    void setKeysSize(uint8_t value = 1);
 
     void setKeyedValuesNb(uint32_t value = 0);
 

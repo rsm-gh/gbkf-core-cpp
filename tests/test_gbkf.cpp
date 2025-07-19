@@ -56,7 +56,7 @@ void testHeader() {
         writer.setSpecificationId(test_entry.spec_id);
         writer.setSpecificationVersion(test_entry.spec_version);
         writer.setStringEncoding(test_entry.str_encoding);
-        writer.setKeysLength(test_entry.keys_length);
+        writer.setKeysSize(test_entry.keys_length);
         writer.setKeyedValuesNb(test_entry.keyed_values_nb);
         writer.write(file, false);
 
@@ -68,7 +68,7 @@ void testHeader() {
         auto encoding = reader.getStringEncoding();
         auto str_enc = test_entry.str_encoding;
         assert(reader.getStringEncoding() == test_entry.str_encoding);
-        assert(reader.getKeysLength() == test_entry.keys_length);
+        assert(reader.getKeysSize() == test_entry.keys_length);
         assert(reader.getKeyedValuesNb() == test_entry.keyed_values_nb);
         assert(reader.verifiesSha());
     }
@@ -80,7 +80,7 @@ void testKeyedValues() {
     std::string path = "test_core_values.gbkf";
 
     GBKFCoreWriter writer;
-    writer.setKeysLength(2);
+    writer.setKeysSize(2);
 
     std::vector<uint8_t> input_values_uint8 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 255};
     std::vector<uint16_t> input_values_uint16 = {1, 200, 300, 400, 45, 600, 700, 800, 900, 1000};
