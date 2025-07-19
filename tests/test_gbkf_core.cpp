@@ -60,7 +60,7 @@ void testHeader() {
     std::cout << "test OK > GBKFCore Header.\n";
 }
 
-void testValues() {
+void testKeyedValues() {
     std::string path = "test_core_values.gbkf";
 
     GBKFCore::Writer writer;
@@ -102,39 +102,38 @@ void testValues() {
 
     auto output_entry_uint8 = map["UI"][0];
     assert(output_entry_uint8.instance_id == 1);
-    assert(output_entry_uint8.getValues<uint8_t>(GBKFCore::ValueType::UINT8) == input_values_uint8);
+    assert(output_entry_uint8.getValues<uint8_t>() == input_values_uint8);
 
     auto output_entry_uint16 = map["UI"][1];
     assert(output_entry_uint16.instance_id == 2);
-    assert(output_entry_uint16.getValues<uint16_t>(GBKFCore::ValueType::UINT16) == input_values_uint16);
+    assert(output_entry_uint16.getValues<uint16_t>() == input_values_uint16);
 
     auto output_entry_uint32 = map["UI"][2];
     assert(output_entry_uint32.instance_id == 3);
-    assert(output_entry_uint32.getValues<uint32_t>(GBKFCore::ValueType::UINT32) == input_values_uint32);
+    assert(output_entry_uint32.getValues<uint32_t>() == input_values_uint32);
 
     auto output_entry_uint64 = map["UI"][3];
     assert(output_entry_uint64.instance_id == 4);
-    assert(output_entry_uint64.getValues<uint64_t>(GBKFCore::ValueType::UINT64) == input_values_uint64);
+    assert(output_entry_uint64.getValues<uint64_t>() == input_values_uint64);
 
     auto output_entry_int8 = map["SI"][0];
     assert(output_entry_int8.instance_id == 1);
-    assert(output_entry_int8.getValues<int8_t>(GBKFCore::ValueType::INT8) == input_values_int8);
+    assert(output_entry_int8.getValues<int8_t>() == input_values_int8);
 
     auto output_entry_int16 = map["SI"][1];
     assert(output_entry_int16.instance_id == 2);
-    assert(output_entry_int16.getValues<int16_t>(GBKFCore::ValueType::INT16) == input_values_int16);
+    assert(output_entry_int16.getValues<int16_t>() == input_values_int16);
 
     auto output_entry_int32 = map["SI"][2];
     assert(output_entry_int32.instance_id == 3);
-    assert(output_entry_int32.getValues<int32_t>(GBKFCore::ValueType::INT32) == input_values_int32);
+    assert(output_entry_int32.getValues<int32_t>() == input_values_int32);
 
     auto output_entry_int64 = map["SI"][3];
     assert(output_entry_int64.instance_id == 4);
-    assert(output_entry_int64.getValues<int64_t>(GBKFCore::ValueType::INT64) == input_values_int64);
+    assert(output_entry_int64.getValues<int64_t>() == input_values_int64);
 
     auto output_entry_boolean = map["BO"][0];
     assert(output_entry_boolean.instance_id == 1);
-    assert(output_entry_boolean.getType() == GBKFCore::ValueType::BOOLEAN);
     std::vector<bool> output_booleans = output_entry_boolean.getValues<bool>();
     for (size_t i = 0; i < input_booleans.size(); ++i) {
         assert(output_booleans[i] == input_booleans[i]);
@@ -142,7 +141,6 @@ void testValues() {
 
     auto output_entry_float32 = map["F3"][0];
     assert(output_entry_float32.instance_id == 5);
-    assert(output_entry_float32.getType() == GBKFCore::ValueType::FLOAT32);
     std::vector<float> output_floats32 = output_entry_float32.getValues<float>();
     for (size_t i = 0; i < input_floats32.size(); ++i) {
         assert(std::abs(output_floats32[i] - input_floats32[i]) < 1e-6);
@@ -150,7 +148,6 @@ void testValues() {
 
     auto output_entry_float64 = map["F6"][0];
     assert(output_entry_float64.instance_id == 1);
-    assert(output_entry_float64.getType() == GBKFCore::ValueType::FLOAT64);
     std::vector<double> output_floats64 = output_entry_float64.getValues<double>();
     for (size_t i = 0; i < input_floats64.size(); ++i) {
         assert(std::abs(output_floats64[i] - input_floats64[i]) < 1e-6);
@@ -163,7 +160,7 @@ void testValues() {
 int main() {
     try {
         testHeader();
-        testValues();
+        testKeyedValues();
     } catch (const std::exception &e) {
         std::cerr << "Test failed: " << e.what() << '\n';
         return 1;

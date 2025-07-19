@@ -95,7 +95,7 @@ namespace GBKFCore {
         [[nodiscard]] ValueType getType() const;
 
         template<typename T>
-        [[nodiscard]] std::vector<T> &getValues(std::optional<ValueType> expected_type = std::nullopt);
+        [[nodiscard]] std::vector<T> &getValues();
 
     private:
         ValueType m_type;
@@ -183,19 +183,16 @@ namespace GBKFCore {
     }
 
     template<typename T>
-    std::vector<T> &KeyedEntry::getValues(const std::optional<ValueType> expected_type) {
-        if (expected_type && *expected_type != m_type) {
-            throw std::runtime_error("Explicit type mismatch in getValues");
-        }
-
+    std::vector<T> &KeyedEntry::getValues() {
         ensureType<T>();
         return *static_cast<std::vector<T> *>(m_values.get());
     }
 
     template<typename T>
     void KeyedEntry::ensureType() const {
-        if (m_type != deduceValueType<T>())
+        if (m_type != deduceValueType<T>()) {
             throw std::runtime_error("Type mismatch on KeyedEntry access");
+        }
     }
 
 
