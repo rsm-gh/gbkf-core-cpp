@@ -9,6 +9,8 @@ make install
 Use the flag `cmake .. -DCMAKE_INSTALL_PREFIX=/usr` to install it into the system's directory and make it detectable
 by default without adding it into the `ldconfig` path.
 
+also, do not forget using `ldconfig` as root to update the cache.
+
 ## Emscripten
 ```
 emcmake cmake -DCMAKE_BUILD_TYPE=Release ..
