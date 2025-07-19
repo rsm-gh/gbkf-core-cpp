@@ -33,7 +33,8 @@ GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
     m_gbkf_version = 0;
     m_specification_id = 0;
     m_specification_version = 0;
-    m_string_encoding = "";
+    m_main_string_encoding = "";
+    m_secondary_string_encoding = "";
     m_keys_length = 1;
     m_keyed_values_nb = 0;
 
@@ -52,7 +53,8 @@ GBKFCoreReader::GBKFCoreReader(const std::string &read_path) {
     m_gbkf_version = 0;
     m_specification_id = 0;
     m_specification_version = 0;
-    m_string_encoding = "";
+    m_main_string_encoding = "";
+    m_secondary_string_encoding = "";
     m_keys_length = 1;
     m_keyed_values_nb = 0;
 
@@ -91,8 +93,12 @@ uint16_t GBKFCoreReader::getSpecificationVersion() const {
     return m_specification_version;
 }
 
-std::string GBKFCoreReader::getStringEncoding() const {
-    return m_string_encoding;
+std::string GBKFCoreReader::getMainStringEncoding() const {
+    return m_main_string_encoding;
+}
+
+std::string GBKFCoreReader::getSecondaryStringEncoding() const {
+    return m_secondary_string_encoding;
 }
 
 uint8_t GBKFCoreReader::getKeysSize() const {
@@ -121,12 +127,23 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
         switch (keyed_entry.getType()) {
             case ValueType::STRING: {
 
-                // Read the max string size
-                auto [max_string_size, new_pos] = readUInt16(current_pos);
+                // Read the encoding choice
+                const auto [encoding_choice, new_pos] = readUInt8(current_pos);
                 current_pos = new_pos;
 
+                std::string encoding;
+                if (static_cast<EncodingChoice>(encoding_choice) == EncodingChoice::SECONDARY) {
+                    encoding = m_secondary_string_encoding;
+                }else {
+                    encoding = m_main_string_encoding;
+                }
+
+                // Read the max string size
+                const auto [max_string_size, new_pos1] = readUInt16(current_pos);
+                current_pos = new_pos1;
+
                 // Read the total number of bytes
-                auto [total_bytes, new_pos2] = readUInt64(current_pos);
+                const auto [total_bytes, new_pos2] = readUInt64(current_pos);
                 current_pos = new_pos2;
 
                 //
@@ -135,10 +152,10 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
                 if (max_string_size == 0) {
                     std::vector<std::string> values;
 
-                    if (m_string_encoding == Constants::StringEncoding::UTF8) {
+                    if (encoding == Constants::StringEncoding::UTF8) {
                         std::tie(values, current_pos) = readValuesTextUTF8(current_pos, values_nb);
-                    } else if (m_string_encoding == Constants::StringEncoding::LATIN1 ||
-                               m_string_encoding == Constants::StringEncoding::ASCII) {
+                    } else if (encoding == Constants::StringEncoding::LATIN1 ||
+                               encoding == Constants::StringEncoding::ASCII) {
                         std::tie(values, current_pos) = readValuesText1Byte(current_pos, values_nb);
                     } else {
                         throw std::runtime_error("Invalid string encoding");
@@ -154,10 +171,10 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
 
                 std::vector<std::string> values;
 
-                if (m_string_encoding == Constants::StringEncoding::UTF8) {
+                if (m_main_string_encoding == Constants::StringEncoding::UTF8) {
                     std::tie(values, current_pos) = readValuesStringUTF8(current_pos, values_nb, max_string_size);
-                } else if (m_string_encoding == Constants::StringEncoding::LATIN1 ||
-                           m_string_encoding == Constants::StringEncoding::ASCII) {
+                } else if (m_main_string_encoding == Constants::StringEncoding::LATIN1 ||
+                           m_main_string_encoding == Constants::StringEncoding::ASCII) {
                     std::tie(values, current_pos) = readValuesString1Byte(current_pos, values_nb, max_string_size);
                 } else {
                     throw std::runtime_error("Invalid string encoding");
@@ -285,10 +302,14 @@ void GBKFCoreReader::readHeader() {
     m_specification_id = readUInt32(Constants::Header::SPECIFICATION_ID_START).first;
     m_specification_version = readUInt16(Constants::Header::SPECIFICATION_VERSION_START).first;
 
-    m_string_encoding = readString1Byte(Constants::Header::STRING_ENCODING_START,
-                                        Constants::Header::STRING_ENCODING_SIZE).
-            first;
-    m_string_encoding.resize(std::strlen(m_string_encoding.c_str())); // resize the string to remove the nullable bytes
+    m_main_string_encoding = readString1Byte(Constants::Header::MAIN_STRING_ENCODING_START,
+                                             Constants::Header::MAIN_STRING_ENCODING_SIZE).first;
+    m_main_string_encoding.resize(std::strlen(m_main_string_encoding.c_str())); // resize the string to remove the nullable bytes
+
+    m_secondary_string_encoding = readString1Byte(Constants::Header::SECONDARY_STRING_ENCODING_START,
+                                                  Constants::Header::SECONDARY_STRING_ENCODING_SIZE).first;
+    m_secondary_string_encoding.resize(std::strlen(m_secondary_string_encoding.c_str())); // resize the string to remove the nullable bytes
+
 
     m_keys_length = readUInt8(Constants::Header::KEYS_SIZE_START).first;
     m_keyed_values_nb = readUInt32(Constants::Header::KEYED_VALUES_NB_START).first;

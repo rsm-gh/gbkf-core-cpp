@@ -26,7 +26,9 @@ public:
 
     void reset();
 
-    void setStringEncoding(const std::string &encoding = GBKFCore::Constants::StringEncoding::UTF8);
+    void setMainStringEncoding(const std::string &encoding = GBKFCore::Constants::StringEncoding::UTF8);
+
+    void setSecondaryStringEncoding(const std::string &encoding = GBKFCore::Constants::StringEncoding::ASCII);
 
     void setGBKFVersion(uint8_t value = 0);
 
@@ -45,17 +47,20 @@ public:
     void addKeyedValuesStringASCII(const std::string &key,
                                    uint32_t instance_id,
                                    const std::vector<std::string> &values,
-                                   uint16_t max_size = 0);
+                                   uint16_t max_size = 0,
+                                   GBKFCore::EncodingChoice encoding_choice = GBKFCore::EncodingChoice::MAIN);
 
     void addKeyedValuesStringLatin1(const std::string &key,
                                     uint32_t instance_id,
                                     const std::vector<std::string> &values,
-                                    uint16_t max_size = 0);
+                                    uint16_t max_size = 0,
+                                    GBKFCore::EncodingChoice encoding_choice = GBKFCore::EncodingChoice::MAIN);
 
     void addKeyedValuesStringUTF8(const std::string &key,
                                   uint32_t instance_id,
                                   const std::vector<std::string> &values,
-                                  uint16_t max_size = 0);
+                                  uint16_t max_size = 0,
+                                  GBKFCore::EncodingChoice encoding_choice = GBKFCore::EncodingChoice::MAIN);
 
     void addKeyedValuesInt8(const std::string &key, uint32_t instance_id, const std::vector<int8_t> &values);
 

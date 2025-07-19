@@ -28,34 +28,36 @@ void testHeader() {
         uint8_t gbkf_version;
         uint32_t spec_id;
         uint16_t spec_version;
-        std::string str_encoding;
+        std::string str_main_encoding;
+        std::string str_second_encoding;
         uint8_t keys_length;
         uint32_t keyed_values_nb;
     };
 
     std::vector<TestEntry> const tests = {
-        {0, 0, 0, "UTF-8", 1, 1},
+        {0, 0, 0, "UTF-8", "ASCII", 1, 1},
         {
             std::numeric_limits<int8_t>::max(),
             std::numeric_limits<int32_t>::max(),
             std::numeric_limits<int16_t>::max(),
-            "16_________chars",
+            "16_________chars", "ASCII",
             std::numeric_limits<int8_t>::max(),
             std::numeric_limits<int32_t>::max()
         },
-        {10, 11, 12, "ASCII",13, 13},
+        {10, 11, 12, "ASCII", "ASCII", 13, 13},
     };
 
     for (size_t i = 0; i < tests.size(); ++i) {
         std::string file = "test_core_header_" + std::to_string(i) + ".gbkf";
         GBKFCoreWriter writer;
 
-        const TestEntry& test_entry = tests[i];
+        const TestEntry &test_entry = tests[i];
 
         writer.setGBKFVersion(test_entry.gbkf_version);
         writer.setSpecificationId(test_entry.spec_id);
         writer.setSpecificationVersion(test_entry.spec_version);
-        writer.setStringEncoding(test_entry.str_encoding);
+        writer.setMainStringEncoding(test_entry.str_main_encoding);
+        writer.setSecondaryStringEncoding(test_entry.str_second_encoding);
         writer.setKeysSize(test_entry.keys_length);
         writer.setKeyedValuesNb(test_entry.keyed_values_nb);
         writer.write(file, false);
@@ -65,9 +67,8 @@ void testHeader() {
         assert(reader.getSpecificationID() == test_entry.spec_id);
         assert(reader.getSpecificationVersion() == test_entry.spec_version);
 
-        auto encoding = reader.getStringEncoding();
-        auto str_enc = test_entry.str_encoding;
-        assert(reader.getStringEncoding() == test_entry.str_encoding);
+        assert(reader.getMainStringEncoding() == test_entry.str_main_encoding);
+        assert(reader.getSecondaryStringEncoding() == test_entry.str_second_encoding);
         assert(reader.getKeysSize() == test_entry.keys_length);
         assert(reader.getKeyedValuesNb() == test_entry.keyed_values_nb);
         assert(reader.verifiesSha());
@@ -76,7 +77,10 @@ void testHeader() {
     std::cout << "test OK > GBKFCore Header.\n";
 }
 
-void testKeyedValues(const std::string &encoding) {
+void testKeyedValues(const std::string &main_encoding,
+                     const std::string &secondary_encoding,
+                     const std::vector<std::string> &input_main_strings,
+                     const std::vector<std::string> &input_secondary_strings) {
     std::string path = "test_core_values.gbkf";
 
     std::vector<uint8_t> input_values_uint8 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 255};
@@ -89,23 +93,6 @@ void testKeyedValues(const std::string &encoding) {
     std::vector<int32_t> input_values_int32 = {100, 200, 1, 400, 500, -600, 700, 454545, -900, 1000};
     std::vector<int64_t> input_values_int64 = {100, -454545, 300, 400, 500, 600, 1, 800, -900, 1000};
 
-    std::vector<std::string> input_strings;
-    std::vector<std::string> input_texts;
-
-    if (encoding == GBKFCore::Constants::StringEncoding::ASCII) {
-        input_strings = {"A","B","HELLO","TEST"};
-        input_texts = {"A","BB","CCC","DDDD"};
-
-    }else if (encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
-        input_strings = {"A","¢","Ñ","HELLO","TEST"};
-        input_texts = {"A","BB","¢¢¢","ÑÑÑÑ"};
-
-    }else {
-        // examples with 1, 2, 3, 4 bytes
-        input_strings = {"A","é","€","𐍈"};
-        input_texts = {"A","éé","€€€","𐍈𐍈𐍈𐍈𐍈"};
-    };
-
     std::vector<bool> input_booleans = {true, true, true, true, false, false, false, false, true, false};
     std::vector<float> input_floats32 = {0, .3467846785, 6.5, 110.9, -15000.865};
     std::vector<double> input_floats64 = {0, .3434546785, 1.5, 1000.9, -10000.865};
@@ -117,7 +104,8 @@ void testKeyedValues(const std::string &encoding) {
 
     GBKFCoreWriter writer;
     writer.setKeysSize(2);
-    writer.setStringEncoding(encoding);
+    writer.setMainStringEncoding(main_encoding);
+    writer.setSecondaryStringEncoding(secondary_encoding);
 
     writer.addKeyedValuesUInt8("UI", 1, input_values_uint8);
     writer.addKeyedValuesUInt16("UI", 2, input_values_uint16);
@@ -129,18 +117,22 @@ void testKeyedValues(const std::string &encoding) {
     writer.addKeyedValuesInt32("SI", 3, input_values_int32);
     writer.addKeyedValuesInt64("SI", 4, input_values_int64);
 
-    if (encoding == GBKFCore::Constants::StringEncoding::ASCII) {
-        writer.addKeyedValuesStringASCII("ST", 1, input_strings, 6);
-        writer.addKeyedValuesStringASCII("TT", 1, input_texts);
-
-    }else if (encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
-        writer.addKeyedValuesStringLatin1("ST", 1, input_strings, 6);
-        writer.addKeyedValuesStringLatin1("TT", 1, input_texts);
-
-    }else {
-        writer.addKeyedValuesStringUTF8("ST", 1, input_strings, 6);
-        writer.addKeyedValuesStringUTF8("TT", 1, input_texts);
+    if (main_encoding == GBKFCore::Constants::StringEncoding::ASCII) {
+        writer.addKeyedValuesStringASCII("ST", 1, input_main_strings, 6);
+    } else if (main_encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
+        writer.addKeyedValuesStringLatin1("ST", 1, input_main_strings, 6);
+    } else {
+        writer.addKeyedValuesStringUTF8("ST", 1, input_main_strings, 6);
     };
+
+    if (secondary_encoding == GBKFCore::Constants::StringEncoding::ASCII) {
+        writer.addKeyedValuesStringASCII("TT", 1, input_secondary_strings, 0, GBKFCore::EncodingChoice::SECONDARY);
+    } else if (secondary_encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
+        writer.addKeyedValuesStringLatin1("TT", 1, input_secondary_strings, 0, GBKFCore::EncodingChoice::SECONDARY);
+    } else {
+        writer.addKeyedValuesStringUTF8("TT", 1, input_secondary_strings, 0, GBKFCore::EncodingChoice::SECONDARY);
+    };
+
 
     writer.addKeyedValuesBoolean("BO", 1, input_booleans);
     writer.addKeyedValuesFloat32("F3", 5, input_floats32);
@@ -198,15 +190,15 @@ void testKeyedValues(const std::string &encoding) {
     auto output_entry_strings = map["ST"][0];
     assert(output_entry_strings.instance_id == 1);
     std::vector<std::string> output_strings = output_entry_strings.getValues<std::string>();
-    for (size_t i = 0; i < input_strings.size(); ++i) {
-        assert(output_strings[i] == input_strings[i]);
+    for (size_t i = 0; i < input_main_strings.size(); ++i) {
+        assert(output_strings[i] == input_main_strings[i]);
     }
 
     auto output_entry_texts = map["TT"][0];
     assert(output_entry_texts.instance_id == 1);
     std::vector<std::string> output_texts = output_entry_texts.getValues<std::string>();
-    for (size_t i = 0; i < input_texts.size(); ++i) {
-        assert(output_texts[i] == input_texts[i]);
+    for (size_t i = 0; i < input_secondary_strings.size(); ++i) {
+        assert(output_texts[i] == input_secondary_strings[i]);
     }
 
     auto output_entry_float32 = map["F3"][0];
@@ -224,13 +216,26 @@ void testKeyedValues(const std::string &encoding) {
     }
 
     assert(reader.verifiesSha());
-    std::cout << "test OK > GBKFCore Values "+encoding+" \n";
+    std::cout << "test OK > GBKFCore Values main_encoding=" + main_encoding + " secondary_encoding=" + secondary_encoding + "\n";
 }
 
 int main() {
+    const std::vector<std::string> input_strings_ascii = {"A", "B", "HELLO", "TEST"};
+    const std::vector<std::string> input_strings_latin1 = {"A", "¢", "Ñ", "HELLO", "TEST"};
+    const std::vector<std::string> input_strings_utf8 = {"A", "éé", "€€€", "𐍈𐍈𐍈𐍈𐍈"};
+
     testHeader();
-    testKeyedValues(GBKFCore::Constants::StringEncoding::ASCII);
-    testKeyedValues(GBKFCore::Constants::StringEncoding::LATIN1);
-    testKeyedValues(GBKFCore::Constants::StringEncoding::UTF8);
+    testKeyedValues(
+        GBKFCore::Constants::StringEncoding::UTF8,
+        GBKFCore::Constants::StringEncoding::ASCII,
+        input_strings_utf8,
+        input_strings_ascii);
+
+    testKeyedValues(
+        GBKFCore::Constants::StringEncoding::LATIN1,
+        GBKFCore::Constants::StringEncoding::UTF8,
+        input_strings_latin1,
+        input_strings_utf8);
+
     return 0;
 }

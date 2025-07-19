@@ -44,7 +44,8 @@ void GBKFCoreWriter::reset() {
     setGBKFVersion();
     setSpecificationId();
     setSpecificationVersion();
-    setStringEncoding();
+    setMainStringEncoding();
+    setSecondaryStringEncoding();
     setKeysSize();
     setKeyedValuesNb();
 }
@@ -61,24 +62,46 @@ void GBKFCoreWriter::setSpecificationVersion(const uint16_t value) {
     setUInt16(value, 0, Constants::Header::SPECIFICATION_VERSION_START);
 }
 
-void GBKFCoreWriter::setStringEncoding(const std::string &encoding) {
+void GBKFCoreWriter::setMainStringEncoding(const std::string &encoding) {
     const std::string normalized_encoding = normalizeString(encoding);
 
     if (normalized_encoding.empty()) {
-        throw std::invalid_argument("GBKFCoreWriter::setStringEncoding: empty string encoding");
+        throw std::invalid_argument("GBKFCoreWriter::setMainStringEncoding: empty string encoding");
     }
 
-    if (normalized_encoding.size() > Constants::Header::STRING_ENCODING_SIZE) {
-        throw std::invalid_argument("GBKFCoreWriter::setStringEncoding: encoding out of bounds");
+    if (normalized_encoding.size() > Constants::Header::MAIN_STRING_ENCODING_SIZE) {
+        throw std::invalid_argument("GBKFCoreWriter::setMainStringEncoding: encoding out of bounds");
     }
 
     std::memset(
-        m_byte_buffer.data() + Constants::Header::STRING_ENCODING_START,
+        m_byte_buffer.data() + Constants::Header::MAIN_STRING_ENCODING_START,
         0,
-        Constants::Header::STRING_ENCODING_SIZE);
+        Constants::Header::MAIN_STRING_ENCODING_SIZE);
 
     std::memcpy(
-        m_byte_buffer.data() + Constants::Header::STRING_ENCODING_START,
+        m_byte_buffer.data() + Constants::Header::MAIN_STRING_ENCODING_START,
+        encoding.c_str(),
+        encoding.size());
+}
+
+void GBKFCoreWriter::setSecondaryStringEncoding(const std::string &encoding) {
+    const std::string normalized_encoding = normalizeString(encoding);
+
+    if (normalized_encoding.empty()) {
+        throw std::invalid_argument("GBKFCoreWriter::setSecondaryStringEncoding: empty string encoding");
+    }
+
+    if (normalized_encoding.size() > Constants::Header::SECONDARY_STRING_ENCODING_START) {
+        throw std::invalid_argument("GBKFCoreWriter::setSecondaryStringEncoding: encoding out of bounds");
+    }
+
+    std::memset(
+        m_byte_buffer.data() + Constants::Header::SECONDARY_STRING_ENCODING_START,
+        0,
+        Constants::Header::SECONDARY_STRING_ENCODING_SIZE);
+
+    std::memcpy(
+        m_byte_buffer.data() + Constants::Header::SECONDARY_STRING_ENCODING_START,
         encoding.c_str(),
         encoding.size());
 }
@@ -104,9 +127,13 @@ void GBKFCoreWriter::setKeyedValuesNbAuto() {
 void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
                                                const uint32_t instance_id,
                                                const std::vector<std::string> &values,
-                                               const uint16_t max_size) {
+                                               const uint16_t max_size,
+                                               const EncodingChoice encoding_choice) {
     // Set the header
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
+
+    // Push the encoding choice
+    line_bytes.push_back(static_cast<uint8_t>(encoding_choice));
 
     // Push the maximum string size
     const auto uint8_max_size = formatUInt16(max_size);
@@ -160,16 +187,23 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesStringLatin1(const std::string &key,
                                                 const uint32_t instance_id,
                                                 const std::vector<std::string> &values,
-                                                const uint16_t max_size) {
-    addKeyedValuesStringASCII(key, instance_id, values, max_size);
+                                                const uint16_t max_size,
+                                                const EncodingChoice encoding_choice) {
+
+    addKeyedValuesStringASCII(key, instance_id, values, max_size, encoding_choice);
 }
 
 void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
                                               const uint32_t instance_id,
                                               const std::vector<std::string> &values,
-                                              const uint16_t max_size) {
+                                              const uint16_t max_size,
+                                              const EncodingChoice encoding_choice) {
+
     // Set the header
     std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
+
+    // Push the encoding choice
+    line_bytes.push_back(static_cast<uint8_t>(encoding_choice));
 
     // Push the maximum string size
     const auto uint8_max_size = formatUInt16(max_size);
@@ -195,7 +229,7 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
 
         }else {
 
-            if (normalized_string.size() > max_size) {
+            if (normalized_string.size() > max_size * 4) {
                 throw std::invalid_argument("String out of bounds");
             }
 
