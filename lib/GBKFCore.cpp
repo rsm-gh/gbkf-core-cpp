@@ -222,9 +222,6 @@ void Reader::readSha() {
 }
 
 void Reader::readHeader() {
-    if (m_bytes_data.size() < Constants::Header::LENGTH) {
-        throw std::invalid_argument("Header too short");
-    }
 
     if (memcmp(m_bytes_data.data(), Constants::Header::START_KEYWORD, Constants::Header::START_KEYWORD_LENGTH) != 0) {
         throw std::invalid_argument("Invalid start keyword");
