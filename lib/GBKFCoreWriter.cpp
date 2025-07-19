@@ -112,19 +112,20 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
     const auto uint8_max_size = formatUInt16(max_size);
     line_bytes.insert(line_bytes.end(), uint8_max_size.begin(), uint8_max_size.end());
 
-    // Set the values
+    // Populate the Values
+    std::vector<uint8_t> values_content;
+
     for (const std::string &str: values) {
         auto normalized_string = normalizeString(str);
-
 
         if (max_size == 0) {
 
             // Set the string size
             auto string_size = formatUInt32(normalized_string.size());
-            line_bytes.insert(line_bytes.end(), string_size.begin(), string_size.end());
+            values_content.insert(values_content.end(), string_size.begin(), string_size.end());
 
             // Set the value
-            line_bytes.insert(line_bytes.end(), normalized_string.begin(), normalized_string.end());
+            values_content.insert(values_content.end(), normalized_string.begin(), normalized_string.end());
 
         }else {
 
@@ -135,10 +136,17 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
             std::vector<uint8_t> buffer(max_size, 0);
             std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
 
-            line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
+            values_content.insert(values_content.end(), buffer.begin(), buffer.end());
 
         }
     }
+
+    // Add the values bytes-size
+    const auto values_bytes_size = formatUInt64(values_content.size());
+    line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
+
+    // Add the values
+    line_bytes.insert(line_bytes.end(), values_content.begin(), values_content.end());
 
     // Add to the buffer
     m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
@@ -167,7 +175,9 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
     const auto uint8_max_size = formatUInt16(max_size);
     line_bytes.insert(line_bytes.end(), uint8_max_size.begin(), uint8_max_size.end());
 
-    // Set the values
+    // Populate the Values
+    std::vector<uint8_t> values_content;
+
     for (const std::string &str: values) {
         auto normalized_string = normalizeString(str);
 
@@ -175,13 +185,13 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
 
             // Set the string size
             auto string_size = formatUInt32(normalized_string.size());
-            line_bytes.insert(line_bytes.end(), string_size.begin(), string_size.end());
+            values_content.insert(values_content.end(), string_size.begin(), string_size.end());
 
             // Set the value
             std::vector<uint8_t> buffer(normalized_string.size() * 4, 0); // max_size * 4 = utf-8 can use 4 bytes
             std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
 
-            line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
+            values_content.insert(values_content.end(), buffer.begin(), buffer.end());
 
         }else {
 
@@ -192,11 +202,18 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
             std::vector<uint8_t> buffer(max_size * 4, 0); // max_size * 4 = utf-8 can use 4 bytes
             std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
 
-            line_bytes.insert(line_bytes.end(), buffer.begin(), buffer.end());
+            values_content.insert(values_content.end(), buffer.begin(), buffer.end());
 
         }
 
     }
+
+    // Add the values bytes-size
+    const auto values_bytes_size = formatUInt64(values_content.size());
+    line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
+
+    // Add the values
+    line_bytes.insert(line_bytes.end(), values_content.begin(), values_content.end());
 
     // Add to the buffer
     m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());

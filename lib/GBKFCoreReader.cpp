@@ -120,10 +120,14 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
 
         switch (keyed_entry.getType()) {
             case ValueType::STRING: {
+
                 // Read the max string size
                 auto [max_string_size, new_pos] = readUInt16(current_pos);
                 current_pos = new_pos;
 
+                // Read the total number of bytes
+                auto [total_bytes, new_pos2] = readUInt64(current_pos);
+                current_pos = new_pos2;
 
                 //
                 // Dynamic strings
