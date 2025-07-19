@@ -28,35 +28,48 @@ void testHeader() {
         uint8_t gbkf_version;
         uint32_t spec_id;
         uint16_t spec_version;
+        std::string str_encoding;
         uint8_t keys_length;
         uint32_t keyed_values_nb;
     };
 
     std::vector<TestEntry> const tests = {
-        {0, 0, 0, 1, 1},
+        {0, 0, 0, "UTF-8", 1, 1},
         {
-            std::numeric_limits<int8_t>::max(), std::numeric_limits<int32_t>::max(),
-            std::numeric_limits<int16_t>::max(), std::numeric_limits<int8_t>::max(), std::numeric_limits<int32_t>::max()
+            std::numeric_limits<int8_t>::max(),
+            std::numeric_limits<int32_t>::max(),
+            std::numeric_limits<int16_t>::max(),
+            "16_________chars",
+            std::numeric_limits<int8_t>::max(),
+            std::numeric_limits<int32_t>::max()
         },
-        {10, 11, 12, 13, 13},
+        {10, 11, 12, "ASCII",13, 13},
     };
 
     for (size_t i = 0; i < tests.size(); ++i) {
         std::string file = "test_core_header_" + std::to_string(i) + ".gbkf";
         GBKFCoreWriter writer;
-        writer.setGBKFVersion(tests[i].gbkf_version);
-        writer.setSpecificationId(tests[i].spec_id);
-        writer.setSpecificationVersion(tests[i].spec_version);
-        writer.setKeysLength(tests[i].keys_length);
-        writer.setKeyedValuesNb(tests[i].keyed_values_nb);
+
+        const TestEntry& test_entry = tests[i];
+
+        writer.setGBKFVersion(test_entry.gbkf_version);
+        writer.setSpecificationId(test_entry.spec_id);
+        writer.setSpecificationVersion(test_entry.spec_version);
+        writer.setStringEncoding(test_entry.str_encoding);
+        writer.setKeysLength(test_entry.keys_length);
+        writer.setKeyedValuesNb(test_entry.keyed_values_nb);
         writer.write(file, false);
 
         GBKFCoreReader reader(file);
-        assert(reader.getGBKFVersion() == tests[i].gbkf_version);
-        assert(reader.getSpecificationID() == tests[i].spec_id);
-        assert(reader.getSpecificationVersion() == tests[i].spec_version);
-        assert(reader.getKeysLength() == tests[i].keys_length);
-        assert(reader.getKeyedValuesNb() == tests[i].keyed_values_nb);
+        assert(reader.getGBKFVersion() == test_entry.gbkf_version);
+        assert(reader.getSpecificationID() == test_entry.spec_id);
+        assert(reader.getSpecificationVersion() == test_entry.spec_version);
+
+        auto encoding = reader.getStringEncoding();
+        auto str_enc = test_entry.str_encoding;
+        assert(reader.getStringEncoding() == test_entry.str_encoding);
+        assert(reader.getKeysLength() == test_entry.keys_length);
+        assert(reader.getKeyedValuesNb() == test_entry.keyed_values_nb);
         assert(reader.verifiesSha());
     }
 

@@ -35,6 +35,8 @@ public:
 
     [[nodiscard]] uint16_t getSpecificationVersion() const;
 
+    [[nodiscard]] std::string getStringEncoding() const;
+
     [[nodiscard]] uint8_t getKeysLength() const;
 
     [[nodiscard]] uint32_t getKeyedValuesNb() const;
@@ -49,6 +51,7 @@ private:
     uint8_t m_gbkf_version;
     uint32_t m_specification_id;
     uint16_t m_specification_version;
+    std::string m_string_encoding;
     uint8_t m_keys_length;
     uint32_t m_keyed_values_nb;
 

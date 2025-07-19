@@ -26,6 +26,8 @@ public:
 
     void reset();
 
+    void setStringEncoding(const std::string& encoding = GBKFCore::Constants::Header::DEFAULT_STRING_ENCODING);
+
     void setGBKFVersion(uint8_t value = 0);
 
     void setSpecificationId(uint32_t value = 0);
@@ -68,6 +70,8 @@ private:
     uint8_t m_keys_length;
     uint32_t m_keyed_values_nb;
     std::vector<std::string> m_keys;
+
+    static std::string normalizeString(const std::string& input);
 
     static std::vector<uint8_t> formatKey(const std::string &key);
 

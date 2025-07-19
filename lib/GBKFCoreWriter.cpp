@@ -44,6 +44,7 @@ void GBKFCoreWriter::reset() {
     setGBKFVersion();
     setSpecificationId();
     setSpecificationVersion();
+    setStringEncoding();
     setKeysLength();
     setKeyedValuesNb();
 }
@@ -58,6 +59,29 @@ void GBKFCoreWriter::setSpecificationId(const uint32_t value) {
 
 void GBKFCoreWriter::setSpecificationVersion(const uint16_t value) {
     setUInt16(value, 0, Constants::Header::SPECIFICATION_VERSION_START);
+}
+
+void GBKFCoreWriter::setStringEncoding(const std::string& encoding) {
+
+    const std::string normalized_encoding = normalizeString(encoding);
+
+    if (normalized_encoding.empty()) {
+        throw std::invalid_argument("GBKFCoreWriter::setStringEncoding: empty string encoding");
+    }
+
+    if (normalized_encoding.size() > Constants::Header::STRING_ENCODING_LENGTH_LENGTH) {
+        throw std::invalid_argument("GBKFCoreWriter::setStringEncoding: encoding out of bounds");
+    }
+
+    std::memset(
+        m_byte_buffer.data() + Constants::Header::STRING_ENCODING_LENGTH_START,
+        0,
+        Constants::Header::STRING_ENCODING_LENGTH_LENGTH);
+
+    std::memcpy(
+        m_byte_buffer.data() + Constants::Header::STRING_ENCODING_LENGTH_START,
+        encoding.c_str(),
+        encoding.size());
 }
 
 void GBKFCoreWriter::setKeysLength(const uint8_t value) {
@@ -323,6 +347,19 @@ void GBKFCoreWriter::write(const std::string &write_path, const bool auto_update
     file.write(reinterpret_cast<const char *>(hash.data()), static_cast<std::streamsize>(hash.size()));
 }
 
+std::string GBKFCoreWriter::normalizeString(const std::string& input) {
+    std::string result = input;
+
+    // Trim trailing nulls
+    auto end = result.find_last_not_of('\0');
+    if (end != std::string::npos) {
+        result.resize(end + 1);
+    } else {
+        result.clear();
+    }
+
+    return result;
+}
 
 std::vector<uint8_t> GBKFCoreWriter::getKeyedValuesHeader(const std::string &key,
                                                           const uint32_t instance_id,
@@ -345,7 +382,8 @@ std::vector<uint8_t> GBKFCoreWriter::getKeyedValuesHeader(const std::string &key
 }
 
 std::vector<uint8_t> GBKFCoreWriter::formatKey(const std::string &key) {
-    return {key.begin(), key.end()};
+    std::string normalized_key = normalizeString(key);
+    return {normalized_key.begin(), normalized_key.end()};
 }
 
 std::vector<uint8_t> GBKFCoreWriter::formatUInt16(uint16_t value) {

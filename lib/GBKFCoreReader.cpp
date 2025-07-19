@@ -33,6 +33,7 @@ GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
     m_gbkf_version = 0;
     m_specification_id = 0;
     m_specification_version = 0;
+    m_string_encoding = "";
     m_keys_length = 1;
     m_keyed_values_nb = 0;
 
@@ -51,6 +52,7 @@ GBKFCoreReader::GBKFCoreReader(const std::string &read_path) {
     m_gbkf_version = 0;
     m_specification_id = 0;
     m_specification_version = 0;
+    m_string_encoding = "";
     m_keys_length = 1;
     m_keyed_values_nb = 0;
 
@@ -87,6 +89,10 @@ uint32_t GBKFCoreReader::getSpecificationID() const {
 
 uint16_t GBKFCoreReader::getSpecificationVersion() const {
     return m_specification_version;
+}
+
+std::string GBKFCoreReader::getStringEncoding() const {
+    return m_string_encoding;
 }
 
 uint8_t GBKFCoreReader::getKeysLength() const {
@@ -229,6 +235,10 @@ void GBKFCoreReader::readHeader() {
     m_gbkf_version = readUInt8(Constants::Header::GBKF_VERSION_START).first;
     m_specification_id = readUInt32(Constants::Header::SPECIFICATION_ID_START).first;
     m_specification_version = readUInt16(Constants::Header::SPECIFICATION_VERSION_START).first;
+
+    m_string_encoding = readAscii(Constants::Header::STRING_ENCODING_LENGTH_START, Constants::Header::STRING_ENCODING_LENGTH_LENGTH).first;
+    m_string_encoding.resize(std::strlen(m_string_encoding.c_str())); // resize the string to remove the nullable bytes
+
     m_keys_length = readUInt8(Constants::Header::KEYS_LENGTH_START).first;
     m_keyed_values_nb = readUInt32(Constants::Header::KEYED_VALUES_NB_START).first;
 }
