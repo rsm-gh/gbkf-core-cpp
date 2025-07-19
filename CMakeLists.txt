@@ -47,19 +47,19 @@ endif()
 
 
 #
-# GBKF Core Library
+# GBKF Core Reader Library
 #
 
-add_library(GBKFCore lib/GBKFCore.cpp)
+add_library(GBKFCoreReader lib/GBKFCoreReader.cpp)
 
-target_include_directories(GBKFCore PUBLIC include)
-set_target_properties(GBKFCore PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+target_include_directories(GBKFCoreReader PUBLIC include)
+set_target_properties(GBKFCoreReader PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 if(USE_OPEN_SSL)
-    target_link_libraries(GBKFCore PUBLIC OpenSSL::Crypto)
+    target_link_libraries(GBKFCoreReader PUBLIC OpenSSL::Crypto)
 endif()
 
-install(TARGETS GBKFCore
+install(TARGETS GBKFCoreReader
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
@@ -67,10 +67,33 @@ install(TARGETS GBKFCore
 
 install(DIRECTORY include/GBKF DESTINATION include)
 
+
 #
-# Test GBKFCore
+# GBKF Core Writer Library
 #
 
-add_executable(test_gbkf_core tests/test_gbkf_core.cpp)
-target_link_libraries(test_gbkf_core PRIVATE GBKFCore)
-set_target_properties(test_gbkf_core PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+add_library(GBKFCoreWriter lib/GBKFCoreWriter.cpp)
+
+target_include_directories(GBKFCoreWriter PUBLIC include)
+set_target_properties(GBKFCoreWriter PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+if(USE_OPEN_SSL)
+    target_link_libraries(GBKFCoreWriter PUBLIC OpenSSL::Crypto)
+endif()
+
+install(TARGETS GBKFCoreWriter
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/GBKF DESTINATION include)
+
+#
+# Test Reader and Writer
+#
+
+add_executable(test_gbkf tests/test_gbkf.cpp)
+target_link_libraries(test_gbkf PRIVATE GBKFCoreReader)
+target_link_libraries(test_gbkf PRIVATE GBKFCoreWriter)
+set_target_properties(test_gbkf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

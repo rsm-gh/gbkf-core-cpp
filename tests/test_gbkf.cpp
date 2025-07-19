@@ -16,7 +16,10 @@
 #include <iostream>
 #include <filesystem>
 #include <limits>
+
 #include "GBKF/GBKFCore.hxx"
+#include "GBKF/GBKFCoreReader.hxx"
+#include "GBKF/GBKFCoreWriter.hxx"
 
 void testHeader() {
     std::string path = "test_core_header.gbkf";
@@ -40,7 +43,7 @@ void testHeader() {
 
     for (size_t i = 0; i < tests.size(); ++i) {
         std::string file = "test_core_header_" + std::to_string(i) + ".gbkf";
-        GBKFCore::Writer writer;
+        GBKFCoreWriter writer;
         writer.setGBKFVersion(tests[i].gbkf_version);
         writer.setSpecificationId(tests[i].spec_id);
         writer.setSpecificationVersion(tests[i].spec_version);
@@ -48,7 +51,7 @@ void testHeader() {
         writer.setKeyedValuesNb(tests[i].keyed_values_nb);
         writer.write(file, false);
 
-        GBKFCore::Reader reader(file);
+        GBKFCoreReader reader(file);
         assert(reader.getGBKFVersion() == tests[i].gbkf_version);
         assert(reader.getSpecificationID() == tests[i].spec_id);
         assert(reader.getSpecificationVersion() == tests[i].spec_version);
@@ -63,7 +66,7 @@ void testHeader() {
 void testKeyedValues() {
     std::string path = "test_core_values.gbkf";
 
-    GBKFCore::Writer writer;
+    GBKFCoreWriter writer;
     writer.setKeysLength(2);
 
     std::vector<uint8_t> input_values_uint8 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 255};
@@ -97,7 +100,7 @@ void testKeyedValues() {
 
     writer.write(path, true);
 
-    GBKFCore::Reader reader(path);
+    GBKFCoreReader reader(path);
     auto map = reader.getKeyedEntries();
 
     auto output_entry_uint8 = map["UI"][0];
@@ -148,7 +151,7 @@ void testKeyedValues() {
 
     auto output_entry_float64 = map["F6"][0];
     assert(output_entry_float64.instance_id == 1);
-    std::vector<double> output_floats64 = output_entry_float64.getValues<double>();
+    std::vector<uint8_t> output_floats64 = output_entry_float64.getValues<uint8_t>();
     for (size_t i = 0; i < input_floats64.size(); ++i) {
         assert(std::abs(output_floats64[i] - input_floats64[i]) < 1e-6);
     }
@@ -158,12 +161,7 @@ void testKeyedValues() {
 }
 
 int main() {
-    try {
-        testHeader();
-        testKeyedValues();
-    } catch (const std::exception &e) {
-        std::cerr << "Test failed: " << e.what() << '\n';
-        return 1;
-    }
+    testHeader();
+    testKeyedValues();
     return 0;
 }
