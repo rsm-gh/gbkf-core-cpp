@@ -1,8 +1,9 @@
 
 C++ implementation of the [Generic Binary Keyed Format (*.gbkf)](https://gbkf-format.org).
 
-
 ## Implementation Remarks
+
++ The current supported string encodings are `ASCII`, `Latin-1` and `UTF-8`.
 
 + In some cases method overloading was avoided because:
   + It makes explicit for the developer the type of the data is being handled, which I think it's a very important detail in a binary format.
