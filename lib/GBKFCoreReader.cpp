@@ -143,7 +143,7 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
                 current_pos = new_pos1;
 
                 // Read the total number of bytes
-                const auto [total_bytes, new_pos2] = readUInt64(current_pos);
+                const auto [total_bytes, new_pos2] = readUInt32(current_pos);
                 current_pos = new_pos2;
 
                 //
@@ -439,7 +439,7 @@ std::pair<std::vector<std::string>, uint64_t> GBKFCoreReader::readValuesText1Byt
     uint64_t final_pos = start_pos;
 
     for (uint32_t i = 0; i < values_nb; ++i) {
-        auto [string_size, new_pos] = readUInt32(final_pos);
+        auto [string_size, new_pos] = readUInt16(final_pos);
         std::tie(values[i], final_pos) = readString1Byte(new_pos, string_size);
     }
     return {values, final_pos};
@@ -453,7 +453,7 @@ std::pair<std::vector<std::string>, uint64_t> GBKFCoreReader::readValuesTextUTF8
     uint64_t final_pos = start_pos;
 
     for (uint32_t i = 0; i < values_nb; ++i) {
-        auto [string_size, new_pos] = readUInt32(final_pos);
+        auto [string_size, new_pos] = readUInt16(final_pos);
         std::tie(values[i], final_pos) = readStringUTF8(new_pos, string_size);
     }
     return {values, final_pos};

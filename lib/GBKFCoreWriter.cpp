@@ -135,7 +135,7 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
     // Push the encoding choice
     line_bytes.push_back(static_cast<uint8_t>(encoding_choice));
 
-    // Push the maximum string size
+    // Push the maximum string size  ( 0 for dynamic strings )
     const auto uint8_max_size = formatUInt16(max_size);
     line_bytes.insert(line_bytes.end(), uint8_max_size.begin(), uint8_max_size.end());
 
@@ -148,7 +148,7 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
         if (max_size == 0) {
 
             // Set the string size
-            auto string_size = formatUInt32(normalized_string.size());
+            auto string_size = formatUInt16(normalized_string.size());
             values_content.insert(values_content.end(), string_size.begin(), string_size.end());
 
             // Set the value
@@ -169,7 +169,7 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
     }
 
     // Add the values bytes-size
-    const auto values_bytes_size = formatUInt64(values_content.size());
+    const auto values_bytes_size = formatUInt32(values_content.size());
     line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
 
     // Add the values
@@ -205,7 +205,7 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
     // Push the encoding choice
     line_bytes.push_back(static_cast<uint8_t>(encoding_choice));
 
-    // Push the maximum string size
+    // Push the maximum string size ( 0 for dynamic strings )
     const auto uint8_max_size = formatUInt16(max_size);
     line_bytes.insert(line_bytes.end(), uint8_max_size.begin(), uint8_max_size.end());
 
@@ -218,7 +218,7 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
         if (max_size == 0) {
 
             // Set the string size
-            auto string_size = formatUInt32(normalized_string.size());
+            auto string_size = formatUInt16(normalized_string.size());
             values_content.insert(values_content.end(), string_size.begin(), string_size.end());
 
             // Set the value
@@ -243,7 +243,7 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
     }
 
     // Add the values bytes-size
-    const auto values_bytes_size = formatUInt64(values_content.size());
+    const auto values_bytes_size = formatUInt32(values_content.size());
     line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
 
     // Add the values
