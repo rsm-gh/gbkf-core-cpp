@@ -142,14 +142,16 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
                 const auto [max_string_size, new_pos1] = readUInt16(current_pos);
                 current_pos = new_pos1;
 
-                // Read the total number of bytes
-                const auto [total_bytes, new_pos2] = readUInt32(current_pos);
-                current_pos = new_pos2;
-
                 //
                 // Dynamic strings
                 //
                 if (max_string_size == 0) {
+
+                    // Read the total number of bytes
+                    const auto [total_bytes, new_pos2] = readUInt32(current_pos);
+                    current_pos = new_pos2;
+
+
                     std::vector<std::string> values;
 
                     if (encoding == EncodingType::UTF8) {

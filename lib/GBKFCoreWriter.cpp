@@ -132,9 +132,11 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
         }
     }
 
-    // Add the values bytes-size
-    const auto values_bytes_size = formatUInt32(values_content.size());
-    line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
+    if (max_size == 0) {
+        // Add the values bytes-size
+        const auto values_bytes_size = formatUInt32(values_content.size());
+        line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
+    }
 
     // Add the values
     line_bytes.insert(line_bytes.end(), values_content.begin(), values_content.end());
@@ -206,9 +208,11 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
 
     }
 
-    // Add the values bytes-size
-    const auto values_bytes_size = formatUInt32(values_content.size());
-    line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
+    if (max_size == 0) {
+        // Add the values bytes-size
+        const auto values_bytes_size = formatUInt32(values_content.size());
+        line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
+    };
 
     // Add the values
     line_bytes.insert(line_bytes.end(), values_content.begin(), values_content.end());
