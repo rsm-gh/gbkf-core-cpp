@@ -26,9 +26,9 @@ public:
 
     void reset();
 
-    void setMainStringEncoding(const std::string &encoding = GBKFCore::Constants::StringEncoding::UTF8);
+    void setMainStringEncoding(GBKFCore::EncodingType value = GBKFCore::EncodingType::UTF8);
 
-    void setSecondaryStringEncoding(const std::string &encoding = GBKFCore::Constants::StringEncoding::ASCII);
+    void setSecondaryStringEncoding(GBKFCore::EncodingType value = GBKFCore::EncodingType::ASCII);
 
     void setGBKFVersion(uint8_t value = 0);
 

@@ -62,48 +62,12 @@ void GBKFCoreWriter::setSpecificationVersion(const uint16_t value) {
     setUInt16(value, 0, Constants::Header::SPECIFICATION_VERSION_START);
 }
 
-void GBKFCoreWriter::setMainStringEncoding(const std::string &encoding) {
-    const std::string normalized_encoding = normalizeString(encoding);
-
-    if (normalized_encoding.empty()) {
-        throw std::invalid_argument("GBKFCoreWriter::setMainStringEncoding: empty string encoding");
-    }
-
-    if (normalized_encoding.size() > Constants::Header::MAIN_STRING_ENCODING_SIZE) {
-        throw std::invalid_argument("GBKFCoreWriter::setMainStringEncoding: encoding out of bounds");
-    }
-
-    std::memset(
-        m_byte_buffer.data() + Constants::Header::MAIN_STRING_ENCODING_START,
-        0,
-        Constants::Header::MAIN_STRING_ENCODING_SIZE);
-
-    std::memcpy(
-        m_byte_buffer.data() + Constants::Header::MAIN_STRING_ENCODING_START,
-        encoding.c_str(),
-        encoding.size());
+void GBKFCoreWriter::setMainStringEncoding(const EncodingType value) {
+    setUInt16(static_cast<uint16_t>(value), 0, Constants::Header::MAIN_STRING_ENCODING_START);
 }
 
-void GBKFCoreWriter::setSecondaryStringEncoding(const std::string &encoding) {
-    const std::string normalized_encoding = normalizeString(encoding);
-
-    if (normalized_encoding.empty()) {
-        throw std::invalid_argument("GBKFCoreWriter::setSecondaryStringEncoding: empty string encoding");
-    }
-
-    if (normalized_encoding.size() > Constants::Header::SECONDARY_STRING_ENCODING_START) {
-        throw std::invalid_argument("GBKFCoreWriter::setSecondaryStringEncoding: encoding out of bounds");
-    }
-
-    std::memset(
-        m_byte_buffer.data() + Constants::Header::SECONDARY_STRING_ENCODING_START,
-        0,
-        Constants::Header::SECONDARY_STRING_ENCODING_SIZE);
-
-    std::memcpy(
-        m_byte_buffer.data() + Constants::Header::SECONDARY_STRING_ENCODING_START,
-        encoding.c_str(),
-        encoding.size());
+void GBKFCoreWriter::setSecondaryStringEncoding(const EncodingType value) {
+    setUInt16(static_cast<uint16_t>(value), 0, Constants::Header::SECONDARY_STRING_ENCODING_START);
 }
 
 void GBKFCoreWriter::setKeysSize(const uint8_t value) {

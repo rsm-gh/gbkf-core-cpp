@@ -31,12 +31,6 @@ namespace GBKFCore {
 
         constexpr int SHA256_SIZE = 32;
 
-        namespace StringEncoding {
-            constexpr const char *ASCII = "ASCII";
-            constexpr const char *LATIN1 = "LATIN-1";
-            constexpr const char *UTF8 = "UTF-8";
-        }
-
         namespace Header {
             constexpr const char *START_KEYWORD = "gbkf";
             constexpr int START_KEYWORD_SIZE = 4;
@@ -89,6 +83,13 @@ namespace GBKFCore {
     enum class EncodingChoice {
         MAIN = 0,
         SECONDARY = 1,
+    };
+
+    enum class EncodingType {
+        UNDEFINED = 0,
+        ASCII = 3,
+        LATIN1 = 4,
+        UTF8 = 106,
     };
 
     class KeyedEntry {

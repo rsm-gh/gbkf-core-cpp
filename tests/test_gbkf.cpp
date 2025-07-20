@@ -28,23 +28,23 @@ void testHeader() {
         uint8_t gbkf_version;
         uint32_t spec_id;
         uint16_t spec_version;
-        std::string str_main_encoding;
-        std::string str_second_encoding;
+        GBKFCore::EncodingType str_main_encoding;
+        GBKFCore::EncodingType str_second_encoding;
         uint8_t keys_length;
         uint32_t keyed_values_nb;
     };
 
     std::vector<TestEntry> const tests = {
-        {0, 0, 0, "UTF-8", "ASCII", 1, 1},
+        {0, 0, 0, GBKFCore::EncodingType::UNDEFINED, GBKFCore::EncodingType::ASCII, 1, 1},
         {
             std::numeric_limits<int8_t>::max(),
             std::numeric_limits<int32_t>::max(),
             std::numeric_limits<int16_t>::max(),
-            "16_________chars", "ASCII",
+            GBKFCore::EncodingType::ASCII, GBKFCore::EncodingType::LATIN1,
             std::numeric_limits<int8_t>::max(),
             std::numeric_limits<int32_t>::max()
         },
-        {10, 11, 12, "ASCII", "ASCII", 13, 13},
+        {10, 11, 12, GBKFCore::EncodingType::LATIN1, GBKFCore::EncodingType::UTF8, 13, 13},
     };
 
     for (size_t i = 0; i < tests.size(); ++i) {
@@ -77,8 +77,8 @@ void testHeader() {
     std::cout << "test OK > GBKFCore Header.\n";
 }
 
-void testKeyedValues(const std::string &main_encoding,
-                     const std::string &secondary_encoding,
+void testKeyedValues(const GBKFCore::EncodingType main_encoding,
+                     const GBKFCore::EncodingType secondary_encoding,
                      const std::vector<std::string> &input_main_strings,
                      const std::vector<std::string> &input_secondary_strings) {
     std::string path = "test_core_values.gbkf";
@@ -117,17 +117,17 @@ void testKeyedValues(const std::string &main_encoding,
     writer.addKeyedValuesInt32("SI", 3, input_values_int32);
     writer.addKeyedValuesInt64("SI", 4, input_values_int64);
 
-    if (main_encoding == GBKFCore::Constants::StringEncoding::ASCII) {
+    if (main_encoding == GBKFCore::EncodingType::ASCII) {
         writer.addKeyedValuesStringASCII("ST", 1, input_main_strings, 6);
-    } else if (main_encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
+    } else if (main_encoding == GBKFCore::EncodingType::LATIN1) {
         writer.addKeyedValuesStringLatin1("ST", 1, input_main_strings, 6);
     } else {
         writer.addKeyedValuesStringUTF8("ST", 1, input_main_strings, 6);
     };
 
-    if (secondary_encoding == GBKFCore::Constants::StringEncoding::ASCII) {
+    if (secondary_encoding == GBKFCore::EncodingType::ASCII) {
         writer.addKeyedValuesStringASCII("TT", 1, input_secondary_strings, 0, GBKFCore::EncodingChoice::SECONDARY);
-    } else if (secondary_encoding == GBKFCore::Constants::StringEncoding::LATIN1) {
+    } else if (secondary_encoding == GBKFCore::EncodingType::LATIN1) {
         writer.addKeyedValuesStringLatin1("TT", 1, input_secondary_strings, 0, GBKFCore::EncodingChoice::SECONDARY);
     } else {
         writer.addKeyedValuesStringUTF8("TT", 1, input_secondary_strings, 0, GBKFCore::EncodingChoice::SECONDARY);
@@ -216,7 +216,7 @@ void testKeyedValues(const std::string &main_encoding,
     }
 
     assert(reader.verifiesSha());
-    std::cout << "test OK > GBKFCore Values main_encoding=" + main_encoding + " secondary_encoding=" + secondary_encoding + "\n";
+    std::cout << "test OK > GBKFCore Values main_encoding=" << static_cast<uint16_t>(main_encoding) << " secondary_encoding=" << static_cast<uint16_t>(secondary_encoding) << "\n";
 }
 
 int main() {
@@ -226,14 +226,14 @@ int main() {
 
     testHeader();
     testKeyedValues(
-        GBKFCore::Constants::StringEncoding::UTF8,
-        GBKFCore::Constants::StringEncoding::ASCII,
+        GBKFCore::EncodingType::UTF8,
+        GBKFCore::EncodingType::ASCII,
         input_strings_utf8,
         input_strings_ascii);
 
     testKeyedValues(
-        GBKFCore::Constants::StringEncoding::LATIN1,
-        GBKFCore::Constants::StringEncoding::UTF8,
+        GBKFCore::EncodingType::LATIN1,
+        GBKFCore::EncodingType::UTF8,
         input_strings_latin1,
         input_strings_utf8);
 
