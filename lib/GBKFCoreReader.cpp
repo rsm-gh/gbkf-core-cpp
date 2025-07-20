@@ -126,7 +126,6 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
 
         switch (keyed_entry.getType()) {
             case ValueType::STRING: {
-
                 // Read the encoding choice
                 const auto [encoding_choice, new_pos] = readUInt8(current_pos);
                 current_pos = new_pos;
@@ -134,7 +133,7 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
                 EncodingType encoding;
                 if (static_cast<EncodingChoice>(encoding_choice) == EncodingChoice::SECONDARY) {
                     encoding = m_secondary_string_encoding;
-                }else {
+                } else {
                     encoding = m_main_string_encoding;
                 }
 
@@ -146,7 +145,6 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
                 // Dynamic strings
                 //
                 if (max_string_size == 0) {
-
                     // Read the total number of bytes
                     const auto [total_bytes, new_pos2] = readUInt32(current_pos);
                     current_pos = new_pos2;
@@ -186,6 +184,12 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
                 break;
             }
 
+            case ValueType::BLOB: {
+                auto [values, new_pos] = readValuesBlob(current_pos, values_nb);
+                keyed_entry.addValues(values);
+                current_pos = new_pos;
+                break;
+            }
 
             case ValueType::BOOLEAN: {
                 auto [last_byte_bools_nb, pos1] = readUInt8(current_pos);
@@ -305,7 +309,8 @@ void GBKFCoreReader::readHeader() {
     m_specification_version = readUInt16(Constants::Header::SPECIFICATION_VERSION_START).first;
 
     m_main_string_encoding = static_cast<EncodingType>(readUInt16(Constants::Header::MAIN_STRING_ENCODING_START).first);
-    m_secondary_string_encoding =  static_cast<EncodingType>(readUInt16(Constants::Header::SECONDARY_STRING_ENCODING_START).first);
+    m_secondary_string_encoding = static_cast<EncodingType>(readUInt16(
+        Constants::Header::SECONDARY_STRING_ENCODING_START).first);
 
     m_keys_length = readUInt8(Constants::Header::KEYS_SIZE_START).first;
     m_keyed_values_nb = readUInt32(Constants::Header::KEYED_VALUES_NB_START).first;
@@ -375,6 +380,17 @@ std::pair<double, uint64_t> GBKFCoreReader::readFloat64(const uint64_t start_pos
     double value;
     std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT62_SIZE);
     return {value, start_pos + Constants::FLOAT62_SIZE};
+}
+
+std::pair<std::vector<uint8_t>, uint64_t> GBKFCoreReader::readValuesBlob(const uint64_t start_pos,
+                                                                         const uint32_t values_nb) const {
+
+    const auto it_start = std::next(m_bytes_data.cbegin(), static_cast<ptrdiff_t>(start_pos));
+    const auto it_end   = std::next(it_start, static_cast<ptrdiff_t>(values_nb));
+
+    std::vector<uint8_t> blob(it_start, it_end);
+
+    return {blob, start_pos + values_nb};
 }
 
 std::pair<std::vector<bool>, uint64_t> GBKFCoreReader::readValuesBool(uint64_t start_pos,

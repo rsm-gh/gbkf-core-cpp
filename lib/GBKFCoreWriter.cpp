@@ -88,6 +88,24 @@ void GBKFCoreWriter::setKeyedValuesNbAuto() {
     setKeyedValuesNb(m_keyed_values_nb);
 }
 
+void GBKFCoreWriter::addKeyedValuesBlob(const std::string &key,
+                                         const uint32_t instance_id,
+                                         const std::vector<uint8_t> &values) {
+    // Set the header
+    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::BLOB);
+
+    // Set the values
+    line_bytes.insert(line_bytes.end(), values.begin(), values.end());
+
+    // Add to the buffer
+    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    ++m_keyed_values_nb;
+
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
+}
+
 void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
                                                const uint32_t instance_id,
                                                const std::vector<std::string> &values,

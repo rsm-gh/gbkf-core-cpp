@@ -88,13 +88,16 @@ private:
         uint32_t values_nb,
         uint16_t max_size) const;
 
-    [[nodiscard]]  std::pair<std::vector<std::string>, uint64_t> readValuesText1Byte(
+    [[nodiscard]] std::pair<std::vector<std::string>, uint64_t> readValuesText1Byte(
         uint64_t start_pos,
         uint32_t values_nb) const;
 
-    [[nodiscard]]  std::pair<std::vector<std::string>, uint64_t> readValuesTextUTF8(
+    [[nodiscard]] std::pair<std::vector<std::string>, uint64_t> readValuesTextUTF8(
         uint64_t start_pos,
         uint32_t values_nb) const;
+
+    [[nodiscard]] std::pair<std::vector<uint8_t>, uint64_t> readValuesBlob(
+        uint64_t start_pos, uint32_t values_nb) const;
 
     [[nodiscard]] std::pair<std::vector<bool>, uint64_t> readValuesBool(
         uint64_t start_pos, uint32_t values_nb, uint8_t last_byte_bools_nb) const;

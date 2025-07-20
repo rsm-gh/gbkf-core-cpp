@@ -99,9 +99,6 @@ namespace GBKFCore {
         explicit KeyedEntry(ValueType type);
 
         template<typename T>
-        explicit KeyedEntry(std::vector<T> initial_values);
-
-        template<typename T>
         void addValue(const T &val);
 
         template<typename T>
@@ -149,6 +146,7 @@ namespace GBKFCore {
                 m_values = std::make_shared<std::vector<int64_t> >();
                 break;
 
+            case ValueType::BLOB:
             case ValueType::UINT8:
                 m_values = std::make_shared<std::vector<uint8_t> >();
                 break;
@@ -179,11 +177,6 @@ namespace GBKFCore {
     }
 
     template<typename T>
-    KeyedEntry::KeyedEntry(std::vector<T> initial_values)
-        : m_type(deduceValueType<T>()), m_values(std::make_shared<std::vector<T> >(std::move(initial_values))) {
-    }
-
-    template<typename T>
     void KeyedEntry::addValue(const T &val) {
         ensureType<T>();
         getValues<T>()->push_back(val);
@@ -208,7 +201,9 @@ namespace GBKFCore {
 
     template<typename T>
     void KeyedEntry::ensureType() const {
-        if (m_type != deduceValueType<T>()) {
+        if (const ValueType deduced_type = deduceValueType<T>();
+            m_type != deduced_type &&
+            (m_type != ValueType::BLOB && deduced_type != ValueType::UINT8)) {
             throw std::runtime_error("Type mismatch on KeyedEntry access");
         }
     }
@@ -229,6 +224,7 @@ namespace GBKFCore {
         } else if constexpr (std::is_same_v<T, int64_t>) {
             return ValueType::INT64;
         } else if constexpr (std::is_same_v<T, uint8_t>) {
+            // Also used for BLOB
             return ValueType::UINT8;
         } else if constexpr (std::is_same_v<T, uint16_t>) {
             return ValueType::UINT16;

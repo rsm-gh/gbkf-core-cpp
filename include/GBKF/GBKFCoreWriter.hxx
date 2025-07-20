@@ -62,6 +62,8 @@ public:
                                   uint16_t max_size = 0,
                                   GBKFCore::EncodingChoice encoding_choice = GBKFCore::EncodingChoice::MAIN);
 
+    void addKeyedValuesBlob(const std::string &key, uint32_t instance_id, const std::vector<uint8_t> &values);
+
     void addKeyedValuesInt8(const std::string &key, uint32_t instance_id, const std::vector<int8_t> &values);
 
     void addKeyedValuesInt16(const std::string &key, uint32_t instance_id, const std::vector<int16_t> &values);

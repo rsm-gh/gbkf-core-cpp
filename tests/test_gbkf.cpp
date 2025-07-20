@@ -12,10 +12,11 @@
  See the LICENSE file for more details.
 */
 
+#include <bitset>
 #include <cassert>
+#include <limits>
 #include <iostream>
 #include <filesystem>
-#include <limits>
 
 #include "GBKF/GBKFCore.hxx"
 #include "GBKF/GBKFCoreReader.hxx"
@@ -96,7 +97,7 @@ void testKeyedValues(const GBKFCore::EncodingType main_encoding,
     std::vector<bool> input_booleans = {true, true, true, true, false, false, false, false, true, false};
     std::vector<float> input_floats32 = {0, .3467846785, 6.5, 110.9, -15000.865};
     std::vector<double> input_floats64 = {0, .3434546785, 1.5, 1000.9, -10000.865};
-
+    std::vector<uint8_t> input_blobs = {0b11001100, 0b10101010, 0b11110000};
 
     //
     // WRITER
@@ -116,6 +117,8 @@ void testKeyedValues(const GBKFCore::EncodingType main_encoding,
     writer.addKeyedValuesInt16("SI", 2, input_values_int16);
     writer.addKeyedValuesInt32("SI", 3, input_values_int32);
     writer.addKeyedValuesInt64("SI", 4, input_values_int64);
+
+    writer.addKeyedValuesBlob("BB", 1, input_blobs);
 
     if (main_encoding == GBKFCore::EncodingType::ASCII) {
         writer.addKeyedValuesStringASCII("ST", 1, input_main_strings, 6);
@@ -179,6 +182,14 @@ void testKeyedValues(const GBKFCore::EncodingType main_encoding,
     auto output_entry_int64 = map["SI"][3];
     assert(output_entry_int64.instance_id == 4);
     assert(output_entry_int64.getValues<int64_t>() == input_values_int64);
+
+    auto output_entry_blob = map["BB"][0];
+    assert(output_entry_blob.instance_id == 1);
+    std::vector<uint8_t> output_bloobs = output_entry_blob.getValues<uint8_t>();
+    for (size_t i = 0; i < output_bloobs.size(); ++i) {
+        assert(output_bloobs[i] == input_blobs[i]);
+        //std::cout << std::bitset<8>(output_bloobs[i]) << ' ' << std::bitset<8>(input_blobs[i]) << std::endl;
+    }
 
     auto output_entry_boolean = map["BO"][0];
     assert(output_entry_boolean.instance_id == 1);
