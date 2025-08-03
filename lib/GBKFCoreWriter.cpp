@@ -51,23 +51,23 @@ void GBKFCoreWriter::reset() {
 }
 
 void GBKFCoreWriter::setGBKFVersion(const uint8_t value) {
-    setUInt8(value, 0, Constants::Header::GBKF_VERSION_START);
+    setUInt8(value, Constants::Header::GBKF_VERSION_START);
 }
 
 void GBKFCoreWriter::setSpecificationId(const uint32_t value) {
-    setUInt32(value, 0, Constants::Header::SPECIFICATION_ID_START);
+    setUInt32(value, Constants::Header::SPECIFICATION_ID_START);
 }
 
 void GBKFCoreWriter::setSpecificationVersion(const uint16_t value) {
-    setUInt16(value, 0, Constants::Header::SPECIFICATION_VERSION_START);
+    setUInt16(value, Constants::Header::SPECIFICATION_VERSION_START);
 }
 
 void GBKFCoreWriter::setMainStringEncoding(const EncodingType value) {
-    setUInt16(static_cast<uint16_t>(value), 0, Constants::Header::MAIN_STRING_ENCODING_START);
+    setUInt16(static_cast<uint16_t>(value), Constants::Header::MAIN_STRING_ENCODING_START);
 }
 
 void GBKFCoreWriter::setSecondaryStringEncoding(const EncodingType value) {
-    setUInt16(static_cast<uint16_t>(value), 0, Constants::Header::SECONDARY_STRING_ENCODING_START);
+    setUInt16(static_cast<uint16_t>(value), Constants::Header::SECONDARY_STRING_ENCODING_START);
 }
 
 void GBKFCoreWriter::setKeysSize(const uint8_t value) {
@@ -76,12 +76,17 @@ void GBKFCoreWriter::setKeysSize(const uint8_t value) {
             throw std::invalid_argument("Key length mismatch");
         };
     }
-    setUInt8(value, 1, Constants::Header::KEYS_SIZE_START);
+
+    if (value < 1) {
+        throw std::invalid_argument("Key length can not be lower than 1");
+    }
+
+    setUInt8(value, Constants::Header::KEYS_SIZE_START);
     m_keys_length = value;
 }
 
 void GBKFCoreWriter::setKeyedValuesNb(const uint32_t value) {
-    setUInt32(value, 0, Constants::Header::KEYED_VALUES_NB_START);
+    setUInt32(value, Constants::Header::KEYED_VALUES_NB_START);
 }
 
 void GBKFCoreWriter::setKeyedValuesNbAuto() {
@@ -579,11 +584,7 @@ std::vector<uint8_t> GBKFCoreWriter::formatFloat64(const double value) {
 }
 
 void GBKFCoreWriter::setUInt8(const uint8_t value,
-                              const uint8_t min_value,
                               const uint64_t start_pos) {
-    if (value < min_value) {
-        throw std::invalid_argument("Value out of range");
-    }
 
     std::vector<uint8_t> bytes = {value};
     std::copy(bytes.begin(), bytes.end(),
@@ -591,11 +592,7 @@ void GBKFCoreWriter::setUInt8(const uint8_t value,
 }
 
 void GBKFCoreWriter::setUInt16(const uint16_t value,
-                               const uint16_t min_value,
                                const uint64_t start_pos) {
-    if (value < min_value) {
-        throw std::invalid_argument("Value out of range");
-    }
 
     auto bytes = formatUInt16(value);
     std::copy(bytes.begin(), bytes.end(),
@@ -603,11 +600,7 @@ void GBKFCoreWriter::setUInt16(const uint16_t value,
 }
 
 void GBKFCoreWriter::setUInt32(const uint32_t value,
-                               const uint32_t min_value,
                                const uint64_t start_pos) {
-    if (value < min_value) {
-        throw std::invalid_argument("Value out of range");
-    }
 
     auto bytes = formatUInt32(value);
     std::copy(bytes.begin(), bytes.end(),
@@ -615,11 +608,7 @@ void GBKFCoreWriter::setUInt32(const uint32_t value,
 }
 
 void GBKFCoreWriter::setUInt64(const uint64_t value,
-                               const uint64_t min_value,
                                const uint64_t start_pos) {
-    if (value < min_value) {
-        throw std::invalid_argument("Value out of range");
-    }
 
     auto bytes = formatUInt64(value);
     std::copy(bytes.begin(), bytes.end(),
