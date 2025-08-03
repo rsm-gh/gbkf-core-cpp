@@ -25,33 +25,33 @@ namespace GBKFCore {
 
     namespace Header {
         constexpr const char *GBKF_KEYWORD = "gbkf";
-        constexpr int GBKF_KEYWORD_SIZE = 4;
+        constexpr uint8_t GBKF_KEYWORD_SIZE = 4;
 
-        constexpr int GBKF_VERSION_START = GBKF_KEYWORD_SIZE;
-        constexpr int GBKF_VERSION_SIZE = 1;
+        constexpr uint8_t GBKF_VERSION_START = GBKF_KEYWORD_SIZE;
+        constexpr uint8_t GBKF_VERSION_SIZE = 1;
 
-        constexpr int SPECIFICATION_ID_START = GBKF_VERSION_START + GBKF_VERSION_SIZE;
-        constexpr int SPECIFICATION_SIZE = 4;
+        constexpr uint8_t SPECIFICATION_ID_START = GBKF_VERSION_START + GBKF_VERSION_SIZE;
+        constexpr uint8_t SPECIFICATION_SIZE = 4;
 
-        constexpr int SPECIFICATION_VERSION_START = SPECIFICATION_ID_START + SPECIFICATION_SIZE;
-        constexpr int SPECIFICATION_VERSION_SIZE = 2;
+        constexpr uint8_t SPECIFICATION_VERSION_START = SPECIFICATION_ID_START + SPECIFICATION_SIZE;
+        constexpr uint8_t SPECIFICATION_VERSION_SIZE = 2;
 
-        constexpr int MAIN_STRING_ENCODING_START = SPECIFICATION_VERSION_START + SPECIFICATION_VERSION_SIZE;
-        constexpr int MAIN_STRING_ENCODING_SIZE = 16;
+        constexpr uint8_t MAIN_STRING_ENCODING_START = SPECIFICATION_VERSION_START + SPECIFICATION_VERSION_SIZE;
+        constexpr uint8_t MAIN_STRING_ENCODING_SIZE = 16;
 
-        constexpr int SECONDARY_STRING_ENCODING_START = MAIN_STRING_ENCODING_START + MAIN_STRING_ENCODING_SIZE;
-        constexpr int SECONDARY_STRING_ENCODING_SIZE = 16;
+        constexpr uint8_t SECONDARY_STRING_ENCODING_START = MAIN_STRING_ENCODING_START + MAIN_STRING_ENCODING_SIZE;
+        constexpr uint8_t SECONDARY_STRING_ENCODING_SIZE = 16;
 
-        constexpr int KEYS_SIZE_START = SECONDARY_STRING_ENCODING_START + SECONDARY_STRING_ENCODING_SIZE;
-        constexpr int KEYS_SIZE_SIZE = 1;
+        constexpr uint8_t KEYS_SIZE_START = SECONDARY_STRING_ENCODING_START + SECONDARY_STRING_ENCODING_SIZE;
+        constexpr uint8_t KEYS_SIZE_SIZE = 1;
 
-        constexpr int KEYED_VALUES_NB_START = KEYS_SIZE_START + KEYS_SIZE_SIZE;
-        constexpr int KEYED_VALUES_NB_SIZE = 4;
+        constexpr uint8_t KEYED_VALUES_NB_START = KEYS_SIZE_START + KEYS_SIZE_SIZE;
+        constexpr uint8_t KEYED_VALUES_NB_SIZE = 4;
 
-        constexpr int LENGTH = KEYED_VALUES_NB_START + KEYED_VALUES_NB_SIZE;
+        constexpr uint8_t LENGTH = KEYED_VALUES_NB_START + KEYED_VALUES_NB_SIZE;
     }
 
-    constexpr int FOOTER_SIZE = 32;
+    constexpr uint8_t FOOTER_SIZE = 32;
 
     enum class ValueType {
         BLOB = 1,
