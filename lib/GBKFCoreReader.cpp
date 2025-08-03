@@ -372,14 +372,14 @@ std::pair<uint64_t, uint64_t> GBKFCoreReader::readUInt64(const uint64_t start_po
 
 std::pair<float, uint64_t> GBKFCoreReader::readFloat32(const uint64_t start_pos) const {
     float value;
-    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT32_SIZE);
-    return {value, start_pos + Constants::FLOAT32_SIZE};
+    std::memcpy(&value, m_bytes_data.data() + start_pos, 4);
+    return {value, start_pos + 4};
 }
 
 std::pair<double, uint64_t> GBKFCoreReader::readFloat64(const uint64_t start_pos) const {
     double value;
-    std::memcpy(&value, m_bytes_data.data() + start_pos, Constants::FLOAT62_SIZE);
-    return {value, start_pos + Constants::FLOAT62_SIZE};
+    std::memcpy(&value, m_bytes_data.data() + start_pos, 8);
+    return {value, start_pos + 8};
 }
 
 std::pair<std::vector<uint8_t>, uint64_t> GBKFCoreReader::readValuesBlob(const uint64_t start_pos,

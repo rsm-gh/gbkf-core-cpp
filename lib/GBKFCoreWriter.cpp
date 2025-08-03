@@ -563,23 +563,15 @@ std::vector<uint8_t> GBKFCoreWriter::formatUInt64(uint64_t value) {
 
 
 std::vector<uint8_t> GBKFCoreWriter::formatFloat32(const float value) {
-    if (value > Constants::GBKF_FLOAT32_MAX) {
-        throw std::invalid_argument("Float32 too large");
-    }
-
-    std::vector<uint8_t> out(Constants::FLOAT32_SIZE);
-    std::memcpy(out.data(), &value, Constants::FLOAT32_SIZE);
+    std::vector<uint8_t> out(4);
+    std::memcpy(out.data(), &value, 4);
     return out;
 }
 
 
 std::vector<uint8_t> GBKFCoreWriter::formatFloat64(const double value) {
-    if (value > Constants::GBKF_FLOAT62_MAX) {
-        throw std::invalid_argument("Float64 too large");
-    }
-
-    std::vector<uint8_t> out(Constants::FLOAT62_SIZE);
-    std::memcpy(out.data(), &value, Constants::FLOAT62_SIZE);
+    std::vector<uint8_t> out(8);
+    std::memcpy(out.data(), &value, 8);
     return out;
 }
 

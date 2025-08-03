@@ -23,11 +23,6 @@
 
 namespace GBKFCore {
     namespace Constants {
-        constexpr size_t FLOAT32_SIZE = 4;
-        constexpr double GBKF_FLOAT32_MAX = 3.4028235e+38f;
-
-        constexpr size_t FLOAT62_SIZE = 8;
-        constexpr double GBKF_FLOAT62_MAX = 1.7976931348623157e+308;
 
         constexpr int SHA256_SIZE = 32;
 
