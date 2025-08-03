@@ -36,8 +36,8 @@ GBKFCoreWriter::GBKFCoreWriter() {
 }
 
 void GBKFCoreWriter::reset() {
-    m_byte_buffer.assign(Constants::Header::LENGTH, 0);
-    std::memcpy(m_byte_buffer.data(), Constants::Header::START_KEYWORD, Constants::Header::START_KEYWORD_SIZE);
+    m_byte_buffer.assign(Header::LENGTH, 0);
+    std::memcpy(m_byte_buffer.data(), Header::GBKF_KEYWORD, Header::GBKF_KEYWORD_SIZE);
     m_keyed_values_nb = 0;
     m_keys.clear();
     m_keys_length = 1;
@@ -51,23 +51,23 @@ void GBKFCoreWriter::reset() {
 }
 
 void GBKFCoreWriter::setGBKFVersion(const uint8_t value) {
-    setUInt8(value, Constants::Header::GBKF_VERSION_START);
+    setUInt8(value, Header::GBKF_VERSION_START);
 }
 
 void GBKFCoreWriter::setSpecificationId(const uint32_t value) {
-    setUInt32(value, Constants::Header::SPECIFICATION_ID_START);
+    setUInt32(value, Header::SPECIFICATION_ID_START);
 }
 
 void GBKFCoreWriter::setSpecificationVersion(const uint16_t value) {
-    setUInt16(value, Constants::Header::SPECIFICATION_VERSION_START);
+    setUInt16(value, Header::SPECIFICATION_VERSION_START);
 }
 
 void GBKFCoreWriter::setMainStringEncoding(const EncodingType value) {
-    setUInt16(static_cast<uint16_t>(value), Constants::Header::MAIN_STRING_ENCODING_START);
+    setUInt16(static_cast<uint16_t>(value), Header::MAIN_STRING_ENCODING_START);
 }
 
 void GBKFCoreWriter::setSecondaryStringEncoding(const EncodingType value) {
-    setUInt16(static_cast<uint16_t>(value), Constants::Header::SECONDARY_STRING_ENCODING_START);
+    setUInt16(static_cast<uint16_t>(value), Header::SECONDARY_STRING_ENCODING_START);
 }
 
 void GBKFCoreWriter::setKeysSize(const uint8_t value) {
@@ -81,12 +81,12 @@ void GBKFCoreWriter::setKeysSize(const uint8_t value) {
         throw std::invalid_argument("Key length can not be lower than 1");
     }
 
-    setUInt8(value, Constants::Header::KEYS_SIZE_START);
+    setUInt8(value, Header::KEYS_SIZE_START);
     m_keys_length = value;
 }
 
 void GBKFCoreWriter::setKeyedValuesNb(const uint32_t value) {
-    setUInt32(value, Constants::Header::KEYED_VALUES_NB_START);
+    setUInt32(value, Header::KEYED_VALUES_NB_START);
 }
 
 void GBKFCoreWriter::setKeyedValuesNbAuto() {
@@ -480,7 +480,7 @@ void GBKFCoreWriter::write(const std::string &write_path, const bool auto_update
         setKeyedValuesNbAuto();
     }
 
-    std::vector<uint8_t> hash(Constants::SHA256_SIZE);
+    std::vector<uint8_t> hash(FOOTER_SIZE);
 
 #ifdef USE_OPEN_SSL
     SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());

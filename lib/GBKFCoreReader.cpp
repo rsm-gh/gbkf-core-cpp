@@ -38,7 +38,7 @@ GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
     m_keys_length = 1;
     m_keyed_values_nb = 0;
 
-    if (data.size() < Constants::Header::LENGTH + Constants::SHA256_SIZE) {
+    if (data.size() < Header::LENGTH + FOOTER_SIZE) {
         throw std::runtime_error("Data too small");
     }
 
@@ -112,7 +112,7 @@ uint32_t GBKFCoreReader::getKeyedValuesNb() const {
 std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKeyedEntries() const {
     std::unordered_map<std::string, std::vector<KeyedEntry> > keyed_entries_mapping;
 
-    uint64_t current_pos = Constants::Header::LENGTH;
+    uint64_t current_pos = Header::LENGTH;
 
     for (uint32_t i = 0; i < m_keyed_values_nb; ++i) {
         auto [key, p1] = readString1Byte(current_pos, m_keys_length);
@@ -286,34 +286,34 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
 
 void GBKFCoreReader::readSha() {
 #ifdef USE_OPEN_SSL
-    m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_SIZE, m_bytes_data.end());
-    m_sha256_calculated.resize(Constants::SHA256_SIZE);
-    SHA256(m_bytes_data.data(), m_bytes_data.size() - Constants::SHA256_SIZE, m_sha256_calculated.data());
+    m_sha256_read.assign(m_bytes_data.end() - FOOTER_SIZE, m_bytes_data.end());
+    m_sha256_calculated.resize(FOOTER_SIZE);
+    SHA256(m_bytes_data.data(), m_bytes_data.size() - FOOTER_SIZE, m_sha256_calculated.data());
 
 #else
-    m_sha256_read.assign(m_bytes_data.end() - Constants::SHA256_SIZE, m_bytes_data.end());
-    m_sha256_calculated.resize(Constants::SHA256_SIZE);
-    picosha2::hash256(m_bytes_data.begin(), m_bytes_data.end() - Constants::SHA256_SIZE, m_sha256_calculated.begin(),
+    m_sha256_read.assign(m_bytes_data.end() - FOOTER_SIZE, m_bytes_data.end());
+    m_sha256_calculated.resize(FOOTER_SIZE);
+    picosha2::hash256(m_bytes_data.begin(), m_bytes_data.end() - FOOTER_SIZE, m_sha256_calculated.begin(),
                       m_sha256_calculated.end());
 
 #endif
 }
 
 void GBKFCoreReader::readHeader() {
-    if (memcmp(m_bytes_data.data(), Constants::Header::START_KEYWORD, Constants::Header::START_KEYWORD_SIZE) != 0) {
+    if (memcmp(m_bytes_data.data(), Header::GBKF_KEYWORD, Header::GBKF_KEYWORD_SIZE) != 0) {
         throw std::invalid_argument("Invalid start keyword");
     }
 
-    m_gbkf_version = readUInt8(Constants::Header::GBKF_VERSION_START).first;
-    m_specification_id = readUInt32(Constants::Header::SPECIFICATION_ID_START).first;
-    m_specification_version = readUInt16(Constants::Header::SPECIFICATION_VERSION_START).first;
+    m_gbkf_version = readUInt8(Header::GBKF_VERSION_START).first;
+    m_specification_id = readUInt32(Header::SPECIFICATION_ID_START).first;
+    m_specification_version = readUInt16(Header::SPECIFICATION_VERSION_START).first;
 
-    m_main_string_encoding = static_cast<EncodingType>(readUInt16(Constants::Header::MAIN_STRING_ENCODING_START).first);
+    m_main_string_encoding = static_cast<EncodingType>(readUInt16(Header::MAIN_STRING_ENCODING_START).first);
     m_secondary_string_encoding = static_cast<EncodingType>(readUInt16(
-        Constants::Header::SECONDARY_STRING_ENCODING_START).first);
+        Header::SECONDARY_STRING_ENCODING_START).first);
 
-    m_keys_length = readUInt8(Constants::Header::KEYS_SIZE_START).first;
-    m_keyed_values_nb = readUInt32(Constants::Header::KEYED_VALUES_NB_START).first;
+    m_keys_length = readUInt8(Header::KEYS_SIZE_START).first;
+    m_keyed_values_nb = readUInt32(Header::KEYED_VALUES_NB_START).first;
 }
 
 std::pair<std::string, uint64_t> GBKFCoreReader::readString1Byte(const uint64_t start_pos,
