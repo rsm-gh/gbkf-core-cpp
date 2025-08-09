@@ -48,7 +48,7 @@ namespace GBKFCore {
         constexpr uint8_t KEYED_VALUES_NB_START = KEYS_SIZE_START + KEYS_SIZE_SIZE;
         constexpr uint8_t KEYED_VALUES_NB_SIZE = 4;
 
-        constexpr uint8_t LENGTH = KEYED_VALUES_NB_START + KEYED_VALUES_NB_SIZE;
+        constexpr uint8_t SIZE = KEYED_VALUES_NB_START + KEYED_VALUES_NB_SIZE;
     }
 
     constexpr uint8_t FOOTER_SIZE = 32;

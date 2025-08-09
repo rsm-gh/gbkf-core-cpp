@@ -38,7 +38,7 @@ GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
     m_keys_length = 1;
     m_keyed_values_nb = 0;
 
-    if (data.size() < Header::LENGTH + FOOTER_SIZE) {
+    if (data.size() < Header::SIZE + FOOTER_SIZE) {
         throw std::runtime_error("Data too small");
     }
 
@@ -112,7 +112,7 @@ uint32_t GBKFCoreReader::getKeyedValuesNb() const {
 std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKeyedEntries() const {
     std::unordered_map<std::string, std::vector<KeyedEntry> > keyed_entries_mapping;
 
-    uint64_t current_pos = Header::LENGTH;
+    uint64_t current_pos = Header::SIZE;
 
     for (uint32_t i = 0; i < m_keyed_values_nb; ++i) {
         auto [key, p1] = readString1Byte(current_pos, m_keys_length);

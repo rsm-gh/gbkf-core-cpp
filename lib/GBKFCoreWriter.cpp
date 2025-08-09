@@ -36,7 +36,7 @@ GBKFCoreWriter::GBKFCoreWriter() {
 }
 
 void GBKFCoreWriter::reset() {
-    m_byte_buffer.assign(Header::LENGTH, 0);
+    m_byte_buffer.assign(Header::SIZE, 0);
     std::memcpy(m_byte_buffer.data(), Header::GBKF_KEYWORD, Header::GBKF_KEYWORD_SIZE);
     m_keyed_values_nb = 0;
     m_keys.clear();
