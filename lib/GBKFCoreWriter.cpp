@@ -548,30 +548,41 @@ std::vector<uint8_t> GBKFCoreWriter::formatKey(const std::string &key) {
     return {normalized_key.begin(), normalized_key.end()};
 }
 
-std::vector<uint8_t> GBKFCoreWriter::formatUInt16(uint16_t value) {
+std::vector<uint8_t> GBKFCoreWriter::formatUInt16(const uint16_t value) {
     std::vector<uint8_t> out(2);
-    for (int i = 1; i >= 0; --i) {
-        out[i] = static_cast<uint8_t>(value & 0xFF);
-        value >>= 8;
-    }
+
+    // & 0xFF adds an extra and unnecessary operation so it is not used.
+    out[0] = static_cast<uint8_t>(value);
+    out[1] = static_cast<uint8_t>(value >> 8);
+
     return out;
 }
 
-std::vector<uint8_t> GBKFCoreWriter::formatUInt32(uint32_t value) {
+std::vector<uint8_t> GBKFCoreWriter::formatUInt32(const uint32_t value) {
     std::vector<uint8_t> out(4);
-    for (int i = 3; i >= 0; --i) {
-        out[i] = static_cast<uint8_t>(value & 0xFF);
-        value >>= 8;
-    }
+
+    // & 0xFF adds an extra and unnecessary operation so it is not used.
+    out[0] = static_cast<uint8_t>(value);
+    out[1] = static_cast<uint8_t>(value >> 8);
+    out[2] = static_cast<uint8_t>(value >> 16);
+    out[3] = static_cast<uint8_t>(value >> 24);
+
     return out;
 }
 
-std::vector<uint8_t> GBKFCoreWriter::formatUInt64(uint64_t value) {
+std::vector<uint8_t> GBKFCoreWriter::formatUInt64(const uint64_t value) {
     std::vector<uint8_t> out(8);
-    for (int i = 7; i >= 0; --i) {
-        out[i] = value & 0xFF;
-        value >>= 8;
-    }
+
+    // & 0xFF adds an extra and unnecessary operation so it is not used.
+    out[0] = static_cast<uint8_t>(value);
+    out[1] = static_cast<uint8_t>(value >> 8);
+    out[2] = static_cast<uint8_t>(value >> 16);
+    out[3] = static_cast<uint8_t>(value >> 24);
+    out[4] = static_cast<uint8_t>(value >> 32);
+    out[5] = static_cast<uint8_t>(value >> 40);
+    out[6] = static_cast<uint8_t>(value >> 48);
+    out[7] = static_cast<uint8_t>(value >> 56);
+
     return out;
 }
 

@@ -218,14 +218,14 @@ void testKeyedValues(const GBKFCore::EncodingType main_encoding,
     assert(output_entry_float32.instance_id == 5);
     std::vector<float> output_floats32 = output_entry_float32.getValues<float>();
     for (size_t i = 0; i < input_floats32.size(); ++i) {
-        assert(std::abs(output_floats32[i] - input_floats32[i]) < 1e-6);
+        assert(std::abs(output_floats32[i] - input_floats32[i]) < 1e-12);
     }
 
     auto output_entry_float64 = map["F6"][0];
     assert(output_entry_float64.instance_id == 1);
     std::vector<double> output_floats64 = output_entry_float64.getValues<double>();
     for (size_t i = 0; i < input_floats64.size(); ++i) {
-        assert(std::abs(output_floats64[i] - input_floats64[i]) < 1e-6);
+        assert(std::abs(output_floats64[i] - input_floats64[i]) < 1e-12);
     }
 
     assert(reader.verifiesSha());

@@ -1,7 +1,7 @@
 
 C++ implementation of the [Generic Binary Keyed Format (*.gbkf)](https://gbkf-format.org).
 
-## Implementation Remarks
+## Remarks
 
 + Currently, the Reader and Writer classes store all content in RAM. In the future, they will be improved to support disk-based I/O operations for large files.
 

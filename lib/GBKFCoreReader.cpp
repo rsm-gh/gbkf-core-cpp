@@ -356,25 +356,18 @@ std::pair<uint8_t, uint64_t> GBKFCoreReader::readUInt8(const uint64_t start_pos)
 }
 
 std::pair<uint16_t, uint64_t> GBKFCoreReader::readUInt16(const uint64_t start_pos) const {
-    uint16_t value = (static_cast<uint16_t>(m_bytes_data[start_pos]) << 8) |
-                     static_cast<uint16_t>(m_bytes_data[start_pos + 1]);
-    return {value, start_pos + 2};
+    const auto* ptr = reinterpret_cast<const uint16_t*>(&m_bytes_data[start_pos]);
+    return {*ptr, start_pos + 2};
 }
 
 std::pair<uint32_t, uint64_t> GBKFCoreReader::readUInt32(const uint64_t start_pos) const {
-    uint32_t value = (static_cast<uint32_t>(m_bytes_data[start_pos]) << 24) |
-                     (static_cast<uint32_t>(m_bytes_data[start_pos + 1]) << 16) |
-                     (static_cast<uint32_t>(m_bytes_data[start_pos + 2]) << 8) |
-                     static_cast<uint32_t>(m_bytes_data[start_pos + 3]);
-    return {value, start_pos + 4};
+    const auto* ptr = reinterpret_cast<const uint32_t*>(&m_bytes_data[start_pos]);
+    return {*ptr, start_pos + 4};
 }
 
 std::pair<uint64_t, uint64_t> GBKFCoreReader::readUInt64(const uint64_t start_pos) const {
-    uint64_t value = 0;
-    for (int i = 0; i < 8; ++i) {
-        value = (value << 8) | static_cast<uint64_t>(m_bytes_data[start_pos + i]);
-    }
-    return {value, start_pos + 8};
+    const auto* ptr = reinterpret_cast<const uint64_t*>(&m_bytes_data[start_pos]);
+    return {*ptr, start_pos + 8};
 }
 
 std::pair<float, uint64_t> GBKFCoreReader::readFloat32(const uint64_t start_pos) const {
