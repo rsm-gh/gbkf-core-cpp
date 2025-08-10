@@ -26,15 +26,15 @@ public:
 
     void reset();
 
-    void setMainStringEncoding(GBKFCore::EncodingType value = GBKFCore::EncodingType::UTF8);
-
-    void setSecondaryStringEncoding(GBKFCore::EncodingType value = GBKFCore::EncodingType::ASCII);
-
     void setGBKFVersion(uint8_t value = 0);
 
     void setSpecificationId(uint32_t value = 0);
 
     void setSpecificationVersion(uint16_t value = 0);
+
+    void setMainStringEncoding(GBKFCore::EncodingType value = GBKFCore::EncodingType::UTF8);
+
+    void setSecondaryStringEncoding(GBKFCore::EncodingType value = GBKFCore::EncodingType::ASCII);
 
     void setKeysSize(uint8_t value = 1);
 
@@ -89,7 +89,7 @@ public:
 private:
     std::vector<uint8_t> m_byte_buffer;
 
-    uint8_t m_keys_length;
+    uint8_t m_keys_size;
     uint32_t m_keyed_values_nb;
     std::vector<std::string> m_keys;
 

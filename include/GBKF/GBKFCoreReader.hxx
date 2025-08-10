@@ -55,7 +55,7 @@ private:
     uint16_t m_specification_version;
     GBKFCore::EncodingType m_main_string_encoding;
     GBKFCore::EncodingType m_secondary_string_encoding;
-    uint8_t m_keys_length;
+    uint8_t m_keys_size;
     uint32_t m_keyed_values_nb;
 
     void readSha();

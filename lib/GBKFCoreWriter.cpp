@@ -31,16 +31,18 @@ using namespace GBKFCore;
 
 GBKFCoreWriter::GBKFCoreWriter() {
     m_keyed_values_nb = 0;
-    m_keys_length = 1;
+    m_keys_size = 1;
     reset();
 }
 
 void GBKFCoreWriter::reset() {
     m_byte_buffer.assign(Header::SIZE, 0);
     std::memcpy(m_byte_buffer.data(), Header::GBKF_KEYWORD, Header::GBKF_KEYWORD_SIZE);
+
     m_keyed_values_nb = 0;
     m_keys.clear();
-    m_keys_length = 1;
+    m_keys_size = 1;
+
     setGBKFVersion();
     setSpecificationId();
     setSpecificationVersion();
@@ -82,7 +84,7 @@ void GBKFCoreWriter::setKeysSize(const uint8_t value) {
     }
 
     setUInt8(value, Header::KEYS_SIZE_START);
-    m_keys_length = value;
+    m_keys_size = value;
 }
 
 void GBKFCoreWriter::setKeyedValuesNb(const uint32_t value) {
@@ -480,19 +482,19 @@ void GBKFCoreWriter::write(const std::string &write_path, const bool auto_update
         setKeyedValuesNbAuto();
     }
 
-    std::vector<uint8_t> hash(FOOTER_SIZE);
+    std::vector<uint8_t> footer_hash(FOOTER_SIZE);
 
 #ifdef USE_OPEN_SSL
     SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
 #else
-    picosha2::hash256(m_byte_buffer.begin(), m_byte_buffer.end(), hash.begin(), hash.end());
+    picosha2::hash256(m_byte_buffer.begin(), m_byte_buffer.end(), footer_hash.begin(), footer_hash.end());
 #endif
 
     std::ofstream file(write_path, std::ios::binary);
 
     file.write(reinterpret_cast<const char *>(m_byte_buffer.data()),
                static_cast<std::streamsize>(m_byte_buffer.size()));
-    file.write(reinterpret_cast<const char *>(hash.data()), static_cast<std::streamsize>(hash.size()));
+    file.write(reinterpret_cast<const char *>(footer_hash.data()), static_cast<std::streamsize>(footer_hash.size()));
 }
 
 std::string GBKFCoreWriter::normalizeString(const std::string &input) {

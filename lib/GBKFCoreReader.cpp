@@ -35,7 +35,7 @@ GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
     m_specification_version = 0;
     m_main_string_encoding = EncodingType::UNDEFINED;
     m_secondary_string_encoding = EncodingType::UNDEFINED;
-    m_keys_length = 1;
+    m_keys_size = 1;
     m_keyed_values_nb = 0;
 
     if (data.size() < Header::SIZE + FOOTER_SIZE) {
@@ -55,7 +55,7 @@ GBKFCoreReader::GBKFCoreReader(const std::string &read_path) {
     m_specification_version = 0;
     m_main_string_encoding = EncodingType::UNDEFINED;
     m_secondary_string_encoding = EncodingType::UNDEFINED;
-    m_keys_length = 1;
+    m_keys_size = 1;
     m_keyed_values_nb = 0;
 
     std::ifstream file(read_path, std::ios::binary);
@@ -102,7 +102,7 @@ EncodingType GBKFCoreReader::getSecondaryStringEncoding() const {
 }
 
 uint8_t GBKFCoreReader::getKeysSize() const {
-    return m_keys_length;
+    return m_keys_size;
 }
 
 uint32_t GBKFCoreReader::getKeyedValuesNb() const {
@@ -115,7 +115,7 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
     uint64_t current_pos = Header::SIZE;
 
     for (uint32_t i = 0; i < m_keyed_values_nb; ++i) {
-        auto [key, p1] = readString1Byte(current_pos, m_keys_length);
+        auto [key, p1] = readString1Byte(current_pos, m_keys_size);
         auto [instance_id, p2] = readUInt32(p1);
         auto [values_nb, p3] = readUInt32(p2);
         auto [values_type, p4] = readUInt8(p3);
@@ -312,7 +312,7 @@ void GBKFCoreReader::readHeader() {
     m_secondary_string_encoding = static_cast<EncodingType>(readUInt16(
         Header::SECONDARY_STRING_ENCODING_START).first);
 
-    m_keys_length = readUInt8(Header::KEYS_SIZE_START).first;
+    m_keys_size = readUInt8(Header::KEYS_SIZE_START).first;
     m_keyed_values_nb = readUInt32(Header::KEYED_VALUES_NB_START).first;
 }
 
