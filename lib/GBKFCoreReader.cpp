@@ -38,14 +38,11 @@ GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
     m_keys_size = 1;
     m_keyed_values_nb = 0;
 
-    if (data.size() < Header::SIZE + FOOTER_SIZE) {
-        throw std::runtime_error("Data too small");
-    }
-
     m_bytes_data = data;
 
-    readSha();
     readHeader();
+    readSha();
+
 }
 
 
@@ -73,12 +70,12 @@ GBKFCoreReader::GBKFCoreReader(const std::string &read_path) {
     // This works because char and uint8_t are both 1-byte types.
     file.read(reinterpret_cast<char *>(m_bytes_data.data()), static_cast<std::streamsize>(size));
 
-    readSha();
     readHeader();
+    readSha();
 }
 
 bool GBKFCoreReader::verifiesSha() const {
-    return m_sha256_read == m_sha256_calculated;
+    return m_sha256_read == m_sha256_calculated && !m_sha256_read.empty();
 }
 
 uint8_t GBKFCoreReader::getGBKFVersion() const {
@@ -285,6 +282,11 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
 }
 
 void GBKFCoreReader::readSha() {
+
+    if (m_bytes_data.size() < Header::SIZE + FOOTER_SIZE) {
+        return;
+    }
+
 #ifdef USE_OPEN_SSL
     m_sha256_read.assign(m_bytes_data.end() - FOOTER_SIZE, m_bytes_data.end());
     m_sha256_calculated.resize(FOOTER_SIZE);
@@ -300,6 +302,11 @@ void GBKFCoreReader::readSha() {
 }
 
 void GBKFCoreReader::readHeader() {
+
+    if (m_bytes_data.size() < Header::SIZE) {
+        throw std::runtime_error("Header too short");
+    }
+
     if (memcmp(m_bytes_data.data(), Header::GBKF_KEYWORD, Header::GBKF_KEYWORD_SIZE) != 0) {
         throw std::invalid_argument("Invalid start keyword");
     }

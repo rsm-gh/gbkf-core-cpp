@@ -61,7 +61,7 @@ void testHeader() {
         writer.setSecondaryStringEncoding(test_entry.str_second_encoding);
         writer.setKeysSize(test_entry.keys_length);
         writer.setKeyedValuesNb(test_entry.keyed_values_nb);
-        writer.write(file, false);
+        writer.write(file, false, i>1);
 
         GBKFCoreReader reader(file);
         assert(reader.getGBKFVersion() == test_entry.gbkf_version);
@@ -72,7 +72,8 @@ void testHeader() {
         assert(reader.getSecondaryStringEncoding() == test_entry.str_second_encoding);
         assert(reader.getKeysSize() == test_entry.keys_length);
         assert(reader.getKeyedValuesNb() == test_entry.keyed_values_nb);
-        assert(reader.verifiesSha());
+
+        assert(reader.verifiesSha() == i>0);
     }
 
     std::cout << "test OK > GBKFCore Header.\n";

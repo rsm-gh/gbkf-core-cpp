@@ -477,24 +477,30 @@ void GBKFCoreWriter::addKeyedValuesFloat64(const std::string &key,
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) m_keys.push_back(key);
 }
 
-void GBKFCoreWriter::write(const std::string &write_path, const bool auto_update) {
+void GBKFCoreWriter::write(const std::string &write_path,
+                           const bool auto_update,
+                           const bool add_footer) {
     if (auto_update) {
         setKeyedValuesNbAuto();
     }
 
-    std::vector<uint8_t> footer_hash(FOOTER_SIZE);
+    if (add_footer) {
+
+        std::vector<uint8_t> footer_hash(FOOTER_SIZE);
 
 #ifdef USE_OPEN_SSL
-    SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
+        SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
 #else
-    picosha2::hash256(m_byte_buffer.begin(), m_byte_buffer.end(), footer_hash.begin(), footer_hash.end());
+        picosha2::hash256(m_byte_buffer.begin(), m_byte_buffer.end(), footer_hash.begin(), footer_hash.end());
 #endif
+
+        m_byte_buffer.insert(m_byte_buffer.end(), footer_hash.begin(), footer_hash.end());
+    };
 
     std::ofstream file(write_path, std::ios::binary);
 
     file.write(reinterpret_cast<const char *>(m_byte_buffer.data()),
                static_cast<std::streamsize>(m_byte_buffer.size()));
-    file.write(reinterpret_cast<const char *>(footer_hash.data()), static_cast<std::streamsize>(footer_hash.size()));
 }
 
 std::string GBKFCoreWriter::normalizeString(const std::string &input) {
