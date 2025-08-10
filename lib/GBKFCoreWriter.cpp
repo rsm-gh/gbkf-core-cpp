@@ -484,7 +484,16 @@ void GBKFCoreWriter::write(const std::string &write_path,
         setKeyedValuesNbAuto();
     }
 
+    std::ofstream file(write_path, std::ios::binary);
+
+    file.write(reinterpret_cast<const char *>(m_byte_buffer.data()),
+               static_cast<std::streamsize>(m_byte_buffer.size()));
+
+
     if (add_footer) {
+        //
+        // The footer must be added by separate, or it will bug in case of multiple writes.
+        //
 
         std::vector<uint8_t> footer_hash(FOOTER_SIZE);
 
@@ -494,13 +503,10 @@ void GBKFCoreWriter::write(const std::string &write_path,
         picosha2::hash256(m_byte_buffer.begin(), m_byte_buffer.end(), footer_hash.begin(), footer_hash.end());
 #endif
 
-        m_byte_buffer.insert(m_byte_buffer.end(), footer_hash.begin(), footer_hash.end());
+        file.write(reinterpret_cast<const char *>(footer_hash.data()),
+                   static_cast<std::streamsize>(footer_hash.size()));
     };
 
-    std::ofstream file(write_path, std::ios::binary);
-
-    file.write(reinterpret_cast<const char *>(m_byte_buffer.data()),
-               static_cast<std::streamsize>(m_byte_buffer.size()));
 }
 
 std::string GBKFCoreWriter::normalizeString(const std::string &input) {

@@ -73,7 +73,8 @@ void testHeader() {
         assert(reader.getKeysSize() == test_entry.keys_length);
         assert(reader.getKeyedValuesNb() == test_entry.keyed_values_nb);
 
-        assert(reader.verifiesSha() == i>0);
+        auto value = reader.verifiesSha();
+        assert(reader.verifiesSha() == i>1);
     }
 
     std::cout << "test OK > GBKFCore Header.\n";
