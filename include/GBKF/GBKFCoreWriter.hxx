@@ -101,12 +101,6 @@ private:
 
     static std::vector<uint8_t> formatUInt32(uint32_t value);
 
-    static std::vector<uint8_t> formatUInt64(uint64_t value);
-
-    static std::vector<uint8_t> formatFloat32(float value);
-
-    static std::vector<uint8_t> formatFloat64(double value);
-
     void setUInt8(uint8_t value, uint64_t start_pos);
 
     void setUInt16(uint16_t value, uint64_t start_pos);
@@ -115,10 +109,10 @@ private:
 
     void setUInt64(uint64_t value, uint64_t start_pos);
 
-    static std::vector<uint8_t> getKeyedValuesHeader(const std::string &key,
-                                                     uint32_t instance_id,
-                                                     uint32_t values_nb,
-                                                     GBKFCore::ValueType value_type);
+    void writeKeyedValuesHeader(const std::string &key,
+                                 uint32_t instance_id,
+                                 uint32_t values_nb,
+                                 GBKFCore::ValueType value_type);
 };
 
 #endif // GBKF_CORE_WRITER_HXX

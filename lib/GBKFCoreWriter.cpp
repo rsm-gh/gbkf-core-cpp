@@ -104,16 +104,16 @@ void GBKFCoreWriter::setKeyedValuesNbAuto() {
 void GBKFCoreWriter::addKeyedValuesBlob(const std::string &key,
                                          const uint32_t instance_id,
                                          const std::vector<uint8_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::BLOB);
+     // Add the header
+     writeKeyedValuesHeader(key, instance_id, values.size(), ValueType::BLOB);
 
-    // Set the values
-    line_bytes.insert(line_bytes.end(), values.begin(), values.end());
+    // Add the values
+    m_byte_buffer.insert(m_byte_buffer.end(), values.begin(), values.end());
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Add the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -124,15 +124,15 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
                                                const std::vector<std::string> &values,
                                                const uint16_t max_size,
                                                const EncodingChoice encoding_choice) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
+    // Add the header
+    writeKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
 
-    // Push the encoding choice
-    line_bytes.push_back(static_cast<uint8_t>(encoding_choice));
+    // Add the encoding choice
+    m_byte_buffer.push_back(static_cast<uint8_t>(encoding_choice));
 
-    // Push the maximum string size  ( 0 for dynamic strings )
+    // Add the maximum string size  ( 0 for dynamic strings )
     const auto uint8_max_size = formatUInt16(max_size);
-    line_bytes.insert(line_bytes.end(), uint8_max_size.begin(), uint8_max_size.end());
+    m_byte_buffer.insert(m_byte_buffer.end(), uint8_max_size.begin(), uint8_max_size.end());
 
     // Populate the Values
     std::vector<uint8_t> values_content;
@@ -166,16 +166,16 @@ void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
     if (max_size == 0) {
         // Add the values bytes-size
         const auto values_bytes_size = formatUInt32(values_content.size());
-        line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
+        m_byte_buffer.insert(m_byte_buffer.end(), values_bytes_size.begin(), values_bytes_size.end());
     }
 
     // Add the values
-    line_bytes.insert(line_bytes.end(), values_content.begin(), values_content.end());
+    m_byte_buffer.insert(m_byte_buffer.end(), values_content.begin(), values_content.end());
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -196,15 +196,15 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
                                               const uint16_t max_size,
                                               const EncodingChoice encoding_choice) {
 
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
+    // Add the header
+    writeKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
 
-    // Push the encoding choice
-    line_bytes.push_back(static_cast<uint8_t>(encoding_choice));
+    // Add the encoding choice
+    m_byte_buffer.push_back(static_cast<uint8_t>(encoding_choice));
 
     // Push the maximum string size ( 0 for dynamic strings )
     const auto uint8_max_size = formatUInt16(max_size);
-    line_bytes.insert(line_bytes.end(), uint8_max_size.begin(), uint8_max_size.end());
+    m_byte_buffer.insert(m_byte_buffer.end(), uint8_max_size.begin(), uint8_max_size.end());
 
     // Populate the Values
     std::vector<uint8_t> values_content;
@@ -242,16 +242,16 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
     if (max_size == 0) {
         // Add the values bytes-size
         const auto values_bytes_size = formatUInt32(values_content.size());
-        line_bytes.insert(line_bytes.end(), values_bytes_size.begin(), values_bytes_size.end());
+        m_byte_buffer.insert(m_byte_buffer.end(), values_bytes_size.begin(), values_bytes_size.end());
     };
 
     // Add the values
-    line_bytes.insert(line_bytes.end(), values_content.begin(), values_content.end());
+    m_byte_buffer.insert(m_byte_buffer.end(), values_content.begin(), values_content.end());
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -261,15 +261,15 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesBoolean(const std::string &key,
                                            const uint32_t instance_id,
                                            const std::vector<bool> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::BOOLEAN);
+    // Add the header
+    writeKeyedValuesHeader(key, instance_id, values.size(), ValueType::BOOLEAN);
 
     // Set the last byte number of used booleans
     uint8_t last_bools_nb = values.size() % 8;
     if (last_bools_nb == 0 && !values.empty()) {
         last_bools_nb = 8;
     }
-    line_bytes.push_back(last_bools_nb);
+    m_byte_buffer.push_back(last_bools_nb);
 
     // Pack the booleans into bytes
     std::vector<uint8_t> packed((values.size() + 7) / 8, 0); // ceil(size/8)
@@ -278,12 +278,12 @@ void GBKFCoreWriter::addKeyedValuesBoolean(const std::string &key,
             packed[i / 8] |= (1 << (i % 8)); // LSB-first packing
         }
     }
-    line_bytes.insert(line_bytes.end(), packed.begin(), packed.end());
+    m_byte_buffer.insert(m_byte_buffer.end(), packed.begin(), packed.end());
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -292,18 +292,21 @@ void GBKFCoreWriter::addKeyedValuesBoolean(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesInt8(const std::string &key,
                                         const uint32_t instance_id,
                                         const std::vector<int8_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::INT8);
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::INT8);
 
-    // Set the values
-    for (const auto value: values) {
-        line_bytes.push_back(static_cast<uint8_t>(value));
-    }
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(int8_t);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -312,19 +315,21 @@ void GBKFCoreWriter::addKeyedValuesInt8(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesInt16(const std::string &key,
                                          const uint32_t instance_id,
                                          const std::vector<int16_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::INT16);
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::INT16);
 
-    // Set the values
-    for (const auto value: values) {
-        auto value_bytes = formatUInt16(static_cast<uint16_t>(value));
-        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
-    }
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(int16_t);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -333,19 +338,21 @@ void GBKFCoreWriter::addKeyedValuesInt16(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesInt32(const std::string &key,
                                          const uint32_t instance_id,
                                          const std::vector<int32_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::INT32);
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::INT32);
 
-    // Set the values
-    for (const auto value: values) {
-        auto value_bytes = formatUInt32(static_cast<uint32_t>(value));
-        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
-    }
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(int32_t);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -354,19 +361,21 @@ void GBKFCoreWriter::addKeyedValuesInt32(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesInt64(const std::string &key,
                                          const uint32_t instance_id,
                                          const std::vector<int64_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::INT64);
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::INT64);
 
-    // Set the values
-    for (const auto value: values) {
-        auto value_bytes = formatUInt64(static_cast<uint64_t>(value));
-        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
-    }
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(int64_t);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -375,16 +384,21 @@ void GBKFCoreWriter::addKeyedValuesInt64(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesUInt8(const std::string &key,
                                          const uint32_t instance_id,
                                          const std::vector<uint8_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::UINT8);
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::UINT8);
 
-    // Set the values
-    line_bytes.insert(line_bytes.end(), values.begin(), values.end());
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(uint8_t);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -393,19 +407,21 @@ void GBKFCoreWriter::addKeyedValuesUInt8(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesUInt16(const std::string &key,
                                           const uint32_t instance_id,
                                           const std::vector<uint16_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::UINT16);
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::UINT16);
 
-    // Set the values
-    for (const auto value: values) {
-        auto value_bytes = formatUInt16(value);
-        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
-    }
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(uint16_t);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -414,19 +430,21 @@ void GBKFCoreWriter::addKeyedValuesUInt16(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesUInt32(const std::string &key,
                                           const uint32_t instance_id,
                                           const std::vector<uint32_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::UINT32);
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::UINT32);
 
-    // Set the values
-    for (const auto value: values) {
-        auto value_bytes = formatUInt32(value);
-        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
-    }
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(uint32_t);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -435,19 +453,21 @@ void GBKFCoreWriter::addKeyedValuesUInt32(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesUInt64(const std::string &key,
                                           const uint32_t instance_id,
                                           const std::vector<uint64_t> &values) {
-    // Set the header
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::UINT64);
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::UINT64);
 
-    // Set the values
-    for (const auto value: values) {
-        auto value_bytes = formatUInt64(value);
-        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
-    }
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(uint64_t);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
 
-    // Add to the buffer
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
 
+    // Store the key
     if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
         m_keys.push_back(key);
     }
@@ -456,32 +476,51 @@ void GBKFCoreWriter::addKeyedValuesUInt64(const std::string &key,
 void GBKFCoreWriter::addKeyedValuesFloat32(const std::string &key,
                                            const uint32_t instance_id,
                                            const std::vector<float> &values) {
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::FLOAT32);
 
-    for (const auto value: values) {
-        auto value_bytes = formatFloat32(value);
-        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
-    }
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::FLOAT32);
 
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(float);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
+
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
     ++m_keyed_values_nb;
-    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) m_keys.push_back(key);
+
+    // Store the key
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
+    }
 }
 
 void GBKFCoreWriter::addKeyedValuesFloat64(const std::string &key,
                                            const uint32_t instance_id,
                                            const std::vector<double> &values) {
-    std::vector<uint8_t> line_bytes = getKeyedValuesHeader(key, instance_id, values.size(), ValueType::FLOAT64);
 
-    for (const auto value: values) {
-        auto value_bytes = formatFloat64(value);
-        line_bytes.insert(line_bytes.end(), value_bytes.begin(), value_bytes.end());
+    // Write header first
+    writeKeyedValuesHeader(key, instance_id, static_cast<uint32_t>(values.size()), ValueType::FLOAT64);
+
+    // Reserve space for all values
+    const size_t values_bytes = values.size() * sizeof(double);
+    const size_t old_size = m_byte_buffer.size();
+    m_byte_buffer.resize(old_size + values_bytes);
+
+    // Copy all values at once
+    std::memcpy(m_byte_buffer.data() + old_size, values.data(), values_bytes);
+
+    // Increment the keyed-values count
+    ++m_keyed_values_nb;
+
+    // Store the key
+    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
+        m_keys.push_back(key);
     }
 
-    m_byte_buffer.insert(m_byte_buffer.end(), line_bytes.begin(), line_bytes.end());
-    ++m_keyed_values_nb;
-    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) m_keys.push_back(key);
-}
+};
 
 void GBKFCoreWriter::write(const std::string &write_path,
                            const bool auto_update,
@@ -529,24 +568,25 @@ std::string GBKFCoreWriter::normalizeString(const std::string &input) {
     return result;
 }
 
-std::vector<uint8_t> GBKFCoreWriter::getKeyedValuesHeader(const std::string &key,
-                                                          const uint32_t instance_id,
-                                                          const uint32_t values_nb,
-                                                          const ValueType value_type) {
-    std::vector<uint8_t> line_bytes;
+void GBKFCoreWriter::writeKeyedValuesHeader(const std::string &key,
+                                            const uint32_t instance_id,
+                                            const uint32_t values_nb,
+                                            ValueType value_type) {
 
-    std::vector<uint8_t> key_bytes = formatKey(key);
-    line_bytes.insert(line_bytes.end(), key_bytes.begin(), key_bytes.end());
+    // Add the key
+    auto key_bytes = formatKey(key);
+    m_byte_buffer.insert(m_byte_buffer.end(), key_bytes.begin(), key_bytes.end());
 
-    std::vector<uint8_t> id_bytes = formatUInt32(instance_id);
-    line_bytes.insert(line_bytes.end(), id_bytes.begin(), id_bytes.end());
+    // Add the instance_id
+    m_byte_buffer.resize(m_byte_buffer.size() + sizeof(instance_id));
+    std::memcpy(m_byte_buffer.data() + m_byte_buffer.size() - sizeof(instance_id), &instance_id, sizeof(instance_id));
 
-    std::vector<uint8_t> count_bytes = formatUInt32(values_nb);
-    line_bytes.insert(line_bytes.end(), count_bytes.begin(), count_bytes.end());
+    // Add the values_nb
+    m_byte_buffer.resize(m_byte_buffer.size() + sizeof(values_nb));
+    std::memcpy(m_byte_buffer.data() + m_byte_buffer.size() - sizeof(values_nb), &values_nb, sizeof(values_nb));
 
-    line_bytes.push_back(static_cast<uint8_t>(value_type));
-
-    return line_bytes;
+    // Add value_type
+    m_byte_buffer.push_back(static_cast<uint8_t>(value_type));
 }
 
 std::vector<uint8_t> GBKFCoreWriter::formatKey(const std::string &key) {
@@ -556,53 +596,13 @@ std::vector<uint8_t> GBKFCoreWriter::formatKey(const std::string &key) {
 
 std::vector<uint8_t> GBKFCoreWriter::formatUInt16(const uint16_t value) {
     std::vector<uint8_t> out(2);
-
-    // & 0xFF adds an extra and unnecessary operation so it is not used.
-    out[0] = static_cast<uint8_t>(value);
-    out[1] = static_cast<uint8_t>(value >> 8);
-
+    std::memcpy(out.data(), &value, 2);
     return out;
 }
 
 std::vector<uint8_t> GBKFCoreWriter::formatUInt32(const uint32_t value) {
     std::vector<uint8_t> out(4);
-
-    // & 0xFF adds an extra and unnecessary operation so it is not used.
-    out[0] = static_cast<uint8_t>(value);
-    out[1] = static_cast<uint8_t>(value >> 8);
-    out[2] = static_cast<uint8_t>(value >> 16);
-    out[3] = static_cast<uint8_t>(value >> 24);
-
-    return out;
-}
-
-std::vector<uint8_t> GBKFCoreWriter::formatUInt64(const uint64_t value) {
-    std::vector<uint8_t> out(8);
-
-    // & 0xFF adds an extra and unnecessary operation so it is not used.
-    out[0] = static_cast<uint8_t>(value);
-    out[1] = static_cast<uint8_t>(value >> 8);
-    out[2] = static_cast<uint8_t>(value >> 16);
-    out[3] = static_cast<uint8_t>(value >> 24);
-    out[4] = static_cast<uint8_t>(value >> 32);
-    out[5] = static_cast<uint8_t>(value >> 40);
-    out[6] = static_cast<uint8_t>(value >> 48);
-    out[7] = static_cast<uint8_t>(value >> 56);
-
-    return out;
-}
-
-
-std::vector<uint8_t> GBKFCoreWriter::formatFloat32(const float value) {
-    std::vector<uint8_t> out(4);
     std::memcpy(out.data(), &value, 4);
-    return out;
-}
-
-
-std::vector<uint8_t> GBKFCoreWriter::formatFloat64(const double value) {
-    std::vector<uint8_t> out(8);
-    std::memcpy(out.data(), &value, 8);
     return out;
 }
 
@@ -613,24 +613,15 @@ void GBKFCoreWriter::setUInt8(const uint8_t value,
 
 void GBKFCoreWriter::setUInt16(const uint16_t value,
                                const uint64_t start_pos) {
-
-    auto bytes = formatUInt16(value);
-    std::copy(bytes.begin(), bytes.end(),
-              m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
+    std::memcpy(m_byte_buffer.data() + start_pos, &value, sizeof(value));
 }
 
 void GBKFCoreWriter::setUInt32(const uint32_t value,
                                const uint64_t start_pos) {
-
-    auto bytes = formatUInt32(value);
-    std::copy(bytes.begin(), bytes.end(),
-              m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
+    std::memcpy(m_byte_buffer.data() + start_pos, &value, sizeof(value));
 }
 
 void GBKFCoreWriter::setUInt64(const uint64_t value,
                                const uint64_t start_pos) {
-
-    auto bytes = formatUInt64(value);
-    std::copy(bytes.begin(), bytes.end(),
-              m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
+    std::memcpy(m_byte_buffer.data() + start_pos, &value, sizeof(value));
 }
