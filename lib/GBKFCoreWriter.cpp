@@ -79,14 +79,15 @@ void GBKFCoreWriter::setSecondaryStringEncoding(const EncodingType value) {
 }
 
 void GBKFCoreWriter::setKeysSize(const uint8_t value) {
+
+    if (value < 1) {
+        throw std::invalid_argument("Key length can not be lower than 1");
+    }
+
     for (const auto &key: m_keys) {
         if (key.length() != static_cast<size_t>(value)) {
             throw std::invalid_argument("Key length mismatch");
         };
-    }
-
-    if (value < 1) {
-        throw std::invalid_argument("Key length can not be lower than 1");
     }
 
     setUInt8(value, Header::KEYS_SIZE_START);
