@@ -30,6 +30,12 @@
 using namespace GBKFCore;
 
 GBKFCoreWriter::GBKFCoreWriter() {
+
+    uint16_t num = 1;
+    if (*reinterpret_cast<uint8_t*>(&num) != 1) {
+        throw std::runtime_error("System is not little-endian. Unsupported platform.");
+    }
+
     m_keyed_values_nb = 0;
     m_keys_size = 1;
     reset();
@@ -602,10 +608,7 @@ std::vector<uint8_t> GBKFCoreWriter::formatFloat64(const double value) {
 
 void GBKFCoreWriter::setUInt8(const uint8_t value,
                               const uint64_t start_pos) {
-
-    std::vector<uint8_t> bytes = {value};
-    std::copy(bytes.begin(), bytes.end(),
-              m_byte_buffer.begin() + static_cast<std::vector<uint8_t>::difference_type>(start_pos));
+    m_byte_buffer[start_pos] = value;
 }
 
 void GBKFCoreWriter::setUInt16(const uint16_t value,
