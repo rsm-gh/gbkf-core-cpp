@@ -3,6 +3,8 @@ C++ implementation of the [Generic Binary Keyed Format (*.gbkf)](https://gbkf-fo
 
 ## Remarks
 
++ The implementation only supports `Systems in little-endian`. If the system is not supported, an exception will be thrown during the Reader and Writer constructor.
+
 + Currently, the Reader and Writer classes store all content in RAM. In the future, they will be improved to support disk-based I/O operations for large files.
 
 + The current supported string encodings are `ASCII`, `Latin-1` and `UTF-8`.

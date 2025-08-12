@@ -30,6 +30,14 @@
 using namespace GBKFCore;
 
 GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
+
+
+    uint16_t num = 1;
+    if (*reinterpret_cast<uint8_t*>(&num) != 1) {
+        throw std::runtime_error("System is not little-endian. Unsupported platform.");
+    }
+
+
     m_gbkf_version = 0;
     m_specification_id = 0;
     m_specification_version = 0;
