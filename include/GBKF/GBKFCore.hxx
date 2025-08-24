@@ -36,13 +36,7 @@ namespace GBKFCore {
         constexpr uint8_t SPECIFICATION_VERSION_START = SPECIFICATION_ID_START + SPECIFICATION_SIZE;
         constexpr uint8_t SPECIFICATION_VERSION_SIZE = 2;
 
-        constexpr uint8_t MAIN_STRING_ENCODING_START = SPECIFICATION_VERSION_START + SPECIFICATION_VERSION_SIZE;
-        constexpr uint8_t MAIN_STRING_ENCODING_SIZE = 2;
-
-        constexpr uint8_t SECONDARY_STRING_ENCODING_START = MAIN_STRING_ENCODING_START + MAIN_STRING_ENCODING_SIZE;
-        constexpr uint8_t SECONDARY_STRING_ENCODING_SIZE = 2;
-
-        constexpr uint8_t KEYS_SIZE_START = SECONDARY_STRING_ENCODING_START + SECONDARY_STRING_ENCODING_SIZE;
+        constexpr uint8_t KEYS_SIZE_START = SPECIFICATION_VERSION_START + SPECIFICATION_VERSION_SIZE;
         constexpr uint8_t KEYS_SIZE_SIZE = 1;
 
         constexpr uint8_t KEYED_VALUES_NB_START = KEYS_SIZE_START + KEYS_SIZE_SIZE;
@@ -71,18 +65,6 @@ namespace GBKFCore {
 
         FLOAT32 = 40,
         FLOAT64 = 41,
-    };
-
-    enum class EncodingChoice {
-        MAIN = 0,
-        SECONDARY = 1,
-    };
-
-    enum class EncodingType {
-        UNDEFINED = 0,
-        ASCII = 3,
-        LATIN1 = 4,
-        UTF8 = 106,
     };
 
     class KeyedEntry {

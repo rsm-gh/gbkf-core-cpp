@@ -32,10 +32,6 @@ public:
 
     void setSpecificationVersion(uint16_t value = 0);
 
-    void setMainStringEncoding(GBKFCore::EncodingType value = GBKFCore::EncodingType::UTF8);
-
-    void setSecondaryStringEncoding(GBKFCore::EncodingType value = GBKFCore::EncodingType::ASCII);
-
     void setKeysSize(uint8_t value = 1);
 
     void setKeyedValuesNb(uint32_t value = 0);
@@ -44,23 +40,10 @@ public:
 
     void addKeyedValuesBoolean(const std::string &key, uint32_t instance_id, const std::vector<bool> &values);
 
-    void addKeyedValuesStringASCII(const std::string &key,
-                                   uint32_t instance_id,
-                                   const std::vector<std::string> &values,
-                                   uint16_t max_size = 0,
-                                   GBKFCore::EncodingChoice encoding_choice = GBKFCore::EncodingChoice::MAIN);
-
-    void addKeyedValuesStringLatin1(const std::string &key,
-                                    uint32_t instance_id,
-                                    const std::vector<std::string> &values,
-                                    uint16_t max_size = 0,
-                                    GBKFCore::EncodingChoice encoding_choice = GBKFCore::EncodingChoice::MAIN);
-
     void addKeyedValuesStringUTF8(const std::string &key,
                                   uint32_t instance_id,
                                   const std::vector<std::string> &values,
-                                  uint16_t max_size = 0,
-                                  GBKFCore::EncodingChoice encoding_choice = GBKFCore::EncodingChoice::MAIN);
+                                  uint16_t max_size = 0);
 
     void addKeyedValuesBlob(const std::string &key, uint32_t instance_id, const std::vector<uint8_t> &values);
 

@@ -41,8 +41,6 @@ GBKFCoreReader::GBKFCoreReader(const std::vector<uint8_t> &data) {
     m_gbkf_version = 0;
     m_specification_id = 0;
     m_specification_version = 0;
-    m_main_string_encoding = EncodingType::UNDEFINED;
-    m_secondary_string_encoding = EncodingType::UNDEFINED;
     m_keys_size = 1;
     m_keyed_values_nb = 0;
 
@@ -58,8 +56,6 @@ GBKFCoreReader::GBKFCoreReader(const std::string &read_path) {
     m_gbkf_version = 0;
     m_specification_id = 0;
     m_specification_version = 0;
-    m_main_string_encoding = EncodingType::UNDEFINED;
-    m_secondary_string_encoding = EncodingType::UNDEFINED;
     m_keys_size = 1;
     m_keyed_values_nb = 0;
 
@@ -98,14 +94,6 @@ uint16_t GBKFCoreReader::getSpecificationVersion() const {
     return m_specification_version;
 }
 
-EncodingType GBKFCoreReader::getMainStringEncoding() const {
-    return m_main_string_encoding;
-}
-
-EncodingType GBKFCoreReader::getSecondaryStringEncoding() const {
-    return m_secondary_string_encoding;
-}
-
 uint8_t GBKFCoreReader::getKeysSize() const {
     return m_keys_size;
 }
@@ -131,62 +119,37 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
 
         switch (keyed_entry.getType()) {
             case ValueType::STRING: {
-                // Read the encoding choice
-                const auto [encoding_choice, new_pos] = readUInt8(current_pos);
-                current_pos = new_pos;
-
-                EncodingType encoding;
-                if (static_cast<EncodingChoice>(encoding_choice) == EncodingChoice::SECONDARY) {
-                    encoding = m_secondary_string_encoding;
-                } else {
-                    encoding = m_main_string_encoding;
-                }
 
                 // Read the max string size
-                const auto [max_string_size, new_pos1] = readUInt16(current_pos);
-                current_pos = new_pos1;
+                const auto [max_string_size, new_pos] = readUInt16(current_pos);
+                current_pos = new_pos;
 
-                //
-                // Dynamic strings
-                //
+
                 if (max_string_size == 0) {
-                    // Read the total number of bytes
-                    const auto [total_bytes, new_pos2] = readUInt32(current_pos);
-                    current_pos = new_pos2;
+                    //
+                    // Dynamic strings
+                    //
 
+                    // Read the total number of bytes
+                    const auto [total_bytes, new_pos1] = readUInt32(current_pos);
+                    current_pos = new_pos1;
 
                     std::vector<std::string> values;
-
-                    if (encoding == EncodingType::UTF8) {
-                        std::tie(values, current_pos) = readValuesTextUTF8(current_pos, values_nb);
-                    } else if (encoding == EncodingType::LATIN1 ||
-                               encoding == EncodingType::ASCII) {
-                        std::tie(values, current_pos) = readValuesText1Byte(current_pos, values_nb);
-                    } else {
-                        throw std::runtime_error("Invalid string encoding");
-                    }
+                    std::tie(values, current_pos) = readValuesTextUTF8(current_pos, values_nb);
 
                     keyed_entry.addValues(values);
-                    break;
-                }
 
-                //
-                // Fixed strings
-                //
+                }else {
 
-                std::vector<std::string> values;
+                    //
+                    // Fixed strings
+                    //
 
-                if (m_main_string_encoding == EncodingType::UTF8) {
+                    std::vector<std::string> values;
                     std::tie(values, current_pos) = readValuesStringUTF8(current_pos, values_nb, max_string_size);
-                } else if (m_main_string_encoding == EncodingType::LATIN1 ||
-                           m_main_string_encoding == EncodingType::ASCII) {
-                    std::tie(values, current_pos) = readValuesString1Byte(current_pos, values_nb, max_string_size);
-                } else {
-                    throw std::runtime_error("Invalid string encoding");
-                }
 
-                keyed_entry.addValues(values);
-                break;
+                    keyed_entry.addValues(values);
+                }
             }
 
             case ValueType::BLOB: {
@@ -322,11 +285,6 @@ void GBKFCoreReader::readHeader() {
     m_gbkf_version = readUInt8(Header::GBKF_VERSION_START).first;
     m_specification_id = readUInt32(Header::SPECIFICATION_ID_START).first;
     m_specification_version = readUInt16(Header::SPECIFICATION_VERSION_START).first;
-
-    m_main_string_encoding = static_cast<EncodingType>(readUInt16(Header::MAIN_STRING_ENCODING_START).first);
-    m_secondary_string_encoding = static_cast<EncodingType>(readUInt16(
-        Header::SECONDARY_STRING_ENCODING_START).first);
-
     m_keys_size = readUInt8(Header::KEYS_SIZE_START).first;
     m_keyed_values_nb = readUInt32(Header::KEYED_VALUES_NB_START).first;
 }

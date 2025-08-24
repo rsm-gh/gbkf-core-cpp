@@ -52,8 +52,6 @@ void GBKFCoreWriter::reset() {
     setGBKFVersion();
     setSpecificationId();
     setSpecificationVersion();
-    setMainStringEncoding();
-    setSecondaryStringEncoding();
     setKeysSize();
     setKeyedValuesNb();
 }
@@ -68,14 +66,6 @@ void GBKFCoreWriter::setSpecificationId(const uint32_t value) {
 
 void GBKFCoreWriter::setSpecificationVersion(const uint16_t value) {
     setUInt16(value, Header::SPECIFICATION_VERSION_START);
-}
-
-void GBKFCoreWriter::setMainStringEncoding(const EncodingType value) {
-    setUInt16(static_cast<uint16_t>(value), Header::MAIN_STRING_ENCODING_START);
-}
-
-void GBKFCoreWriter::setSecondaryStringEncoding(const EncodingType value) {
-    setUInt16(static_cast<uint16_t>(value), Header::SECONDARY_STRING_ENCODING_START);
 }
 
 void GBKFCoreWriter::setKeysSize(const uint8_t value) {
@@ -120,88 +110,13 @@ void GBKFCoreWriter::addKeyedValuesBlob(const std::string &key,
     }
 }
 
-void GBKFCoreWriter::addKeyedValuesStringASCII(const std::string &key,
-                                               const uint32_t instance_id,
-                                               const std::vector<std::string> &values,
-                                               const uint16_t max_size,
-                                               const EncodingChoice encoding_choice) {
-    // Add the header
-    writeKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
-
-    // Add the encoding choice
-    m_byte_buffer.push_back(static_cast<uint8_t>(encoding_choice));
-
-    // Add the maximum string size  ( 0 for dynamic strings )
-    const auto uint8_max_size = formatUInt16(max_size);
-    m_byte_buffer.insert(m_byte_buffer.end(), uint8_max_size.begin(), uint8_max_size.end());
-
-    // Populate the Values
-    std::vector<uint8_t> values_content;
-
-    for (const std::string &str: values) {
-        auto normalized_string = normalizeString(str);
-
-        if (max_size == 0) {
-
-            // Set the string size
-            auto string_size = formatUInt16(normalized_string.size());
-            values_content.insert(values_content.end(), string_size.begin(), string_size.end());
-
-            // Set the value
-            values_content.insert(values_content.end(), normalized_string.begin(), normalized_string.end());
-
-        }else {
-
-            if (normalized_string.size() > max_size) {
-                throw std::invalid_argument("String out of bounds");
-            }
-
-            std::vector<uint8_t> buffer(max_size, 0);
-            std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
-
-            values_content.insert(values_content.end(), buffer.begin(), buffer.end());
-
-        }
-    }
-
-    if (max_size == 0) {
-        // Add the values bytes-size
-        const auto values_bytes_size = formatUInt32(values_content.size());
-        m_byte_buffer.insert(m_byte_buffer.end(), values_bytes_size.begin(), values_bytes_size.end());
-    }
-
-    // Add the values
-    m_byte_buffer.insert(m_byte_buffer.end(), values_content.begin(), values_content.end());
-
-    // Increment the keyed-values count
-    ++m_keyed_values_nb;
-
-    // Store the key
-    if (std::find(m_keys.begin(), m_keys.end(), key) == m_keys.end()) {
-        m_keys.push_back(key);
-    }
-}
-
-void GBKFCoreWriter::addKeyedValuesStringLatin1(const std::string &key,
-                                                const uint32_t instance_id,
-                                                const std::vector<std::string> &values,
-                                                const uint16_t max_size,
-                                                const EncodingChoice encoding_choice) {
-
-    addKeyedValuesStringASCII(key, instance_id, values, max_size, encoding_choice);
-}
-
 void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
                                               const uint32_t instance_id,
                                               const std::vector<std::string> &values,
-                                              const uint16_t max_size,
-                                              const EncodingChoice encoding_choice) {
+                                              const uint16_t max_size) {
 
     // Add the header
     writeKeyedValuesHeader(key, instance_id, values.size(), ValueType::STRING);
-
-    // Add the encoding choice
-    m_byte_buffer.push_back(static_cast<uint8_t>(encoding_choice));
 
     // Push the maximum string size ( 0 for dynamic strings )
     const auto uint8_max_size = formatUInt16(max_size);
@@ -210,10 +125,13 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
     // Populate the Values
     std::vector<uint8_t> values_content;
 
-    for (const std::string &str: values) {
-        auto normalized_string = normalizeString(str);
+    if (max_size == 0) {
+        //
+        // Dynamic Strings
+        //
 
-        if (max_size == 0) {
+        for (const std::string &str: values) {
+            auto normalized_string = normalizeString(str);
 
             // Set the string size
             auto string_size = formatUInt16(normalized_string.size());
@@ -224,8 +142,19 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
             std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
 
             values_content.insert(values_content.end(), buffer.begin(), buffer.end());
+        }
 
-        }else {
+        // Add the values bytes-size
+        const auto values_bytes_size = formatUInt32(values_content.size());
+        m_byte_buffer.insert(m_byte_buffer.end(), values_bytes_size.begin(), values_bytes_size.end());
+
+    }else {
+        //
+        // Fixed size strings
+        //
+
+        for (const std::string &str: values) {
+            auto normalized_string = normalizeString(str);
 
             if (normalized_string.size() > max_size * 4) {
                 throw std::invalid_argument("String out of bounds");
@@ -237,14 +166,7 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
             values_content.insert(values_content.end(), buffer.begin(), buffer.end());
 
         }
-
     }
-
-    if (max_size == 0) {
-        // Add the values bytes-size
-        const auto values_bytes_size = formatUInt32(values_content.size());
-        m_byte_buffer.insert(m_byte_buffer.end(), values_bytes_size.begin(), values_bytes_size.end());
-    };
 
     // Add the values
     m_byte_buffer.insert(m_byte_buffer.end(), values_content.begin(), values_content.end());
