@@ -110,8 +110,8 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
     for (uint32_t i = 0; i < m_keyed_values_nb; ++i) {
         auto [key, p1] = readString1Byte(current_pos, m_keys_size);
         auto [instance_id, p2] = readUInt32(p1);
-        auto [values_nb, p3] = readUInt32(p2);
-        auto [values_type, p4] = readUInt8(p3);
+        auto [values_type, p3] = readUInt8(p2);
+        auto [values_nb, p4] = readUInt32(p3);
         current_pos = p4;
 
         KeyedEntry keyed_entry(static_cast<ValueType>(values_type));

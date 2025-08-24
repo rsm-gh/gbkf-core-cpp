@@ -531,12 +531,12 @@ void GBKFCoreWriter::writeKeyedValuesHeader(const std::string &key,
     m_byte_buffer.resize(m_byte_buffer.size() + sizeof(instance_id));
     std::memcpy(m_byte_buffer.data() + m_byte_buffer.size() - sizeof(instance_id), &instance_id, sizeof(instance_id));
 
+    // Add value_type
+    m_byte_buffer.push_back(static_cast<uint8_t>(value_type));
+
     // Add the values_nb
     m_byte_buffer.resize(m_byte_buffer.size() + sizeof(values_nb));
     std::memcpy(m_byte_buffer.data() + m_byte_buffer.size() - sizeof(values_nb), &values_nb, sizeof(values_nb));
-
-    // Add value_type
-    m_byte_buffer.push_back(static_cast<uint8_t>(value_type));
 }
 
 std::vector<uint8_t> GBKFCoreWriter::formatKey(const std::string &key) {
