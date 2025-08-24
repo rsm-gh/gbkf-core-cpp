@@ -150,6 +150,8 @@ std::unordered_map<std::string, std::vector<KeyedEntry> > GBKFCoreReader::getKey
 
                     keyed_entry.addValues(values);
                 }
+
+                break;
             }
 
             case ValueType::BLOB: {
@@ -304,7 +306,7 @@ std::pair<std::string, uint64_t> GBKFCoreReader::readString1Byte(const uint64_t 
 
 std::pair<std::string, uint64_t>
 GBKFCoreReader::readStringUTF8(const uint64_t start_pos, const uint16_t max_size) const {
-    const auto end_pos = start_pos + max_size * 4;
+    const auto end_pos = start_pos + max_size;
 
     const uint8_t *start_ptr = m_bytes_data.data() + start_pos;
     const uint8_t *null_pos = std::find(start_ptr, m_bytes_data.data() + end_pos, '\0');

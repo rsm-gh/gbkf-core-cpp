@@ -92,7 +92,7 @@ void testKeyedValues() {
     std::vector<uint8_t> input_blobs = {0b11001100, 0b10101010, 0b11110000};
 
     const std::vector<std::string> input_strings_ascii = {"A", "B", "HELLO", "TEST"};
-    const std::vector<std::string> input_strings_latin1 = {"A", "¢", "Ñ", "HELLO", "TEST"};
+    const std::vector<std::string> input_strings_latin1 = {"A", "¢", "N", "ÑELLO", "TEST"};
     const std::vector<std::string> input_strings_utf8 = {"A", "éé", "€€€", "𐍈𐍈𐍈𐍈𐍈"};
 
     //
@@ -114,9 +114,9 @@ void testKeyedValues() {
 
     writer.addKeyedValuesBlob("BB", 1, input_blobs);
 
-    writer.addKeyedValuesStringUTF8("SA", 1, input_strings_ascii, 6);
+    writer.addKeyedValuesStringUTF8("SA", 1, input_strings_ascii, 5);
     writer.addKeyedValuesStringUTF8("SL", 1, input_strings_latin1, 6);
-    writer.addKeyedValuesStringUTF8("SU", 1, input_strings_utf8, 40);
+    writer.addKeyedValuesStringUTF8("SU", 1, input_strings_utf8, 50);
 
     writer.addKeyedValuesStringUTF8("TA", 1, input_strings_ascii, 0);
     writer.addKeyedValuesStringUTF8("TL", 1, input_strings_latin1, 0);

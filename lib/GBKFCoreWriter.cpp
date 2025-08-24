@@ -138,7 +138,7 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
             values_content.insert(values_content.end(), string_size.begin(), string_size.end());
 
             // Set the value
-            std::vector<uint8_t> buffer(normalized_string.size() * 4, 0); // max_size * 4 = utf-8 can use 4 bytes
+            std::vector<uint8_t> buffer(normalized_string.size(), 0);
             std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
 
             values_content.insert(values_content.end(), buffer.begin(), buffer.end());
@@ -156,11 +156,11 @@ void GBKFCoreWriter::addKeyedValuesStringUTF8(const std::string &key,
         for (const std::string &str: values) {
             auto normalized_string = normalizeString(str);
 
-            if (normalized_string.size() > max_size * 4) {
+            if (normalized_string.size() > max_size) {
                 throw std::invalid_argument("String out of bounds");
             }
 
-            std::vector<uint8_t> buffer(max_size * 4, 0); // max_size * 4 = utf-8 can use 4 bytes
+            std::vector<uint8_t> buffer(max_size, 0);
             std::copy(normalized_string.begin(), normalized_string.end(), buffer.begin());
 
             values_content.insert(values_content.end(), buffer.begin(), buffer.end());
