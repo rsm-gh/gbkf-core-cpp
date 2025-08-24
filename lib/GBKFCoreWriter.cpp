@@ -477,6 +477,33 @@ void GBKFCoreWriter::write(const std::string &write_path,
 
 }
 
+std::vector<uint8_t> GBKFCoreWriter::getBytesBuffer(const bool auto_update, const bool add_footer) {
+
+    if (auto_update) {
+        setKeyedValuesNbAuto();
+    }
+
+    std::vector<uint8_t> buffer_copy = m_byte_buffer;
+
+    if (add_footer) {
+
+        std::vector<uint8_t> footer_hash(FOOTER_SIZE);
+
+#ifdef USE_OPEN_SSL
+        SHA256(m_byte_buffer.data(), m_byte_buffer.size(), hash.data());
+#else
+        picosha2::hash256(m_byte_buffer.begin(), m_byte_buffer.end(), footer_hash.begin(), footer_hash.end());
+#endif
+
+
+        // Append extra data
+        buffer_copy.insert(buffer_copy.end(), footer_hash.begin(), footer_hash.end());
+    };
+
+    return buffer_copy;
+
+};
+
 std::string GBKFCoreWriter::normalizeString(const std::string &input) {
     std::string result = input;
 

@@ -58,6 +58,14 @@ void testHeader() {
         writer.setKeyedValuesNb(test_entry.keyed_values_nb);
         writer.write(file, false, i>1);
 
+        const auto buffer_size = writer.getBytesBuffer(false, i>1).size();
+        uint8_t expected_buffer_size = GBKFCore::Header::SIZE;
+
+         if (i>1) {
+            expected_buffer_size += GBKFCore::FOOTER_SIZE;
+         };
+        assert(buffer_size == expected_buffer_size);
+
         GBKFCoreReader reader(file);
         assert(reader.getGBKFVersion() == test_entry.gbkf_version);
         assert(reader.getSpecificationID() == test_entry.spec_id);
@@ -243,10 +251,144 @@ void testKeyedValues() {
     std::cout << "test OK > GBKFCore Values \n";
 }
 
+void testStringBufferSize1() {
+
+    // 1 byte chars
+    const std::vector<std::string> input_strings = {"A", "B", "CC"};
+
+    GBKFCoreWriter writer;
+    writer.setKeysSize(1);
+    writer.addKeyedValuesStringUTF8("S", 1, input_strings, 0);
+
+    const auto buffer_expected_size =
+        GBKFCore::Header::SIZE +
+        GBKFCore::FOOTER_SIZE +
+        10 +  // 1 key, 4 Instance ID, 4 Nb of values, 1 Value Type
+        2 +  // 2 Maximum String Size
+        4 +  // 4 Total number of bytes
+        2 * 3 + // 2 String size
+        1 * 3 + 1; // String data
+
+
+    const auto buffer_size = writer.getBytesBuffer().size();
+
+    assert(buffer_size == buffer_expected_size);
+
+
+    std::cout << "test OK > testStringBufferSize1\n";
+}
+
+void testStringBufferSize2() {
+
+    // 2 byte chars
+    const std::vector<std::string> input_strings = {"é", "π", "øπé"};
+
+    GBKFCoreWriter writer;
+    writer.setKeysSize(1);
+    writer.addKeyedValuesStringUTF8("S", 1, input_strings, 0);
+
+    const auto buffer_expected_size =
+        GBKFCore::Header::SIZE +
+        GBKFCore::FOOTER_SIZE +
+        10 +  // 1 key, 4 Instance ID, 4 Nb of values, 1 Value Type
+        2 +  // 2 Maximum String Size
+        4 +  // 4 Total number of bytes
+        2 * 3 + // 2 String size
+        2 * 5; // String data
+
+    const auto buffer_size = writer.getBytesBuffer().size();
+
+    assert(buffer_size == buffer_expected_size);
+
+
+    std::cout << "test OK > testStringBufferSize2\n";
+}
+
+void testStringBufferSize3() {
+
+    // 3 byte chars
+    const std::vector<std::string> input_strings = {"♥", "♥♥"};
+
+    GBKFCoreWriter writer;
+    writer.setKeysSize(1);
+    writer.addKeyedValuesStringUTF8("S", 1, input_strings, 0);
+
+    const auto buffer_expected_size =
+        GBKFCore::Header::SIZE +
+        GBKFCore::FOOTER_SIZE +
+        10 +  // 1 key, 4 Instance ID, 4 Nb of values, 1 Value Type
+        2 +  // 2 Maximum String Size
+        4 +  // 4 Total number of bytes
+        2 * 2 + // 2 String size
+        3 * 3; // String data
+
+    const auto buffer_size = writer.getBytesBuffer().size();
+
+    assert(buffer_size == buffer_expected_size);
+
+
+    std::cout << "test OK > testStringBufferSize3\n";
+}
+
+void testStringBufferSize4() {
+
+    const std::vector<std::string> input_strings = {"🚀", "🚀🚀"};
+
+    GBKFCoreWriter writer;
+    writer.setKeysSize(1);
+    writer.addKeyedValuesStringUTF8("S", 1, input_strings, 0);
+
+    const auto buffer_expected_size =
+        GBKFCore::Header::SIZE +
+        GBKFCore::FOOTER_SIZE +
+        10 +  // 1 key, 4 Instance ID, 4 Nb of values, 1 Value Type
+        2 +  // 2 Maximum String Size
+        4 +  // 4 Total number of bytes
+        2 * 2 + // 2 String size
+        4 * 3; // String data
+
+    const auto buffer_size = writer.getBytesBuffer().size();
+
+    assert(buffer_size == buffer_expected_size);
+
+
+    std::cout << "test OK > testStringBufferSize4\n";
+}
+
+void testStringBufferSize5() {
+
+    // 1,2,3,4 byte chars
+    const std::vector<std::string> input_strings = {"Aé♥🚀", "Aé♥🚀"};
+
+    GBKFCoreWriter writer;
+    writer.setKeysSize(1);
+    writer.addKeyedValuesStringUTF8("S", 1, input_strings, 0);
+
+    const auto buffer_expected_size =
+        GBKFCore::Header::SIZE +
+        GBKFCore::FOOTER_SIZE +
+        10 +  // 1 key, 4 Instance ID, 4 Nb of values, 1 Value Type
+        2 +  // 2 Maximum String Size
+        4 +  // 4 Total number of bytes
+        2 * 2 + // 2 String size
+        (1+2+3+4) * 2; // String data
+
+    const auto buffer_size = writer.getBytesBuffer().size();
+
+    assert(buffer_size == buffer_expected_size);
+
+    std::cout << "test OK > testStringBufferSize5\n";
+}
+
 int main() {
 
     testHeader();
     testKeyedValues();
+    testStringBufferSize1();
+    testStringBufferSize2();
+    testStringBufferSize3();
+    testStringBufferSize4();
+    testStringBufferSize5();
 
     return 0;
 }

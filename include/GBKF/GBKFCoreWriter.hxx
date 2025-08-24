@@ -69,6 +69,8 @@ public:
 
     void write(const std::string &write_path, bool auto_update = true, bool add_footer = true);
 
+    std::vector<uint8_t> getBytesBuffer(bool auto_update = true, bool add_footer = true);
+
 private:
     std::vector<uint8_t> m_byte_buffer;
 
